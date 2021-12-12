@@ -1,0 +1,662 @@
+---
+title: "EDA_2"
+author: "Alejandro Perela"
+date: "20/11/2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(1234)
+```
+
+## Definición de objetivos
+
+El principal objetivo de este análisis es la predicción de si un cliente contratará o no el producto antes de realizar la llamada.
+
+Para ello, vamos a analizar las diferentes variables para ver cómo es su distribución, la calidad de sus datos y cómo es la relación entre ellas.
+
+## Análisis exploratorio inicial
+
+Primero, cargamos las librerías que vamos a necesitar a lo largo del análisis
+
+```{r libraries, warning=FALSE, message=FALSE}
+library(dplyr)
+library(GGally)
+library(VIM)
+library(Hmisc)
+library(ggplot2)
+library(scales)
+library(creditmodel)
+```
+
+Diccionario con la definición de los diferentes campos que incluye el dataset
+
+   1 - **age** (numeric)  
+   2 - **job**: type of job (categorical: "admin.","blue-collar","entrepreneur","housemaid","management","retired","self-employed","services","student","technician","unemployed","unknown")  
+   3 - **marital**: marital status (categorical: "divorced","married","single","unknown"; note: "divorced" means divorced or widowed)  
+   4 - **education** (categorical: "basic.4y","basic.6y","basic.9y","high.school","illiterate","professional.course","university.degree","unknown")  
+   5 - **default**: has credit in default? (categorical: "no","yes","unknown")  
+   6 - **housing**: has housing loan? (categorical: "no","yes","unknown")  
+   7 - **loan**: has personal loan? (categorical: "no","yes","unknown")  
+   # related with the last contact of the current campaign:  
+   8 - **contact**: contact communication type (categorical: "cellular","telephone")  
+   9 - **month**: last contact month of year (categorical: "jan", "feb", "mar", ..., "nov", "dec")  
+  10 - **day_of_week**: last contact day of the week (categorical: "mon","tue","wed","thu","fri")  
+  11 - **duration**: last contact duration, in seconds (numeric). Important note:  this attribute highly affects the output target (e.g., if duration=0 then y="no"). Yet, the duration is not known before a call is performed. Also, after the end of the call y is obviously known. Thus, this input should only be included for benchmark purposes and should be discarded if the intention is to have a realistic predictive model.  
+   # other attributes:  
+  12 - **campaign**: number of contacts performed during this campaign and for this client (numeric, includes last contact)  
+  13 - **pdays**: number of days that passed by after the client was last contacted from a previous campaign (numeric; 999 means client was not previously contacted)  
+  14 - **previous**: number of contacts performed before this campaign and for this client (numeric)  
+  15 - **poutcome**: outcome of the previous marketing campaign (categorical: "failure","nonexistent","success")  
+   # social and economic context attributes  
+  16 - **emp.var.rate**: employment variation rate - quarterly indicator (numeric)  
+  17 - **cons.price.idx**: consumer price index - monthly indicator (numeric)    
+  18 - **cons.conf.idx**: consumer confidence index - monthly indicator (numeric)  
+  19 - **euribor3m**: euribor 3 month rate - daily indicator (numeric)  
+  20 - **nr.employed**: number of employees - quarterly indicator (numeric)  
+
+  Output variable (desired target):  
+  21 - **y** - has the client subscribed a term deposit? (binary: "yes","no")  
+
+
+Cargamos los datos para trabajar sobre ellos
+
+```{r data_load, warning=FALSE, message=FALSE}
+#folder = '/home/alejandro/Documents/Master Data Science/Curso/Fundamentos del análisis de datos/Trabajo grupo/data/bank-additional/bank-additional.csv'
+data <- read.csv(file='../data/bank-additional/bank-additional-full.csv', sep=';')
+head(data)
+```
+
+Comprobamos los diferentes 
+
+```{r column_type, warning=FALSE, message=FALSE}
+str(data)
+```
+Parece que todas las columnas tienen el tipo de datos correcto, por lo que continuamos analizando los diferentes valores que toman las dimensiones cualitativas
+
+
+**Trabajo**
+
+```{r histogram_job, warning=FALSE, message=FALSE, fig.width=12,fig.height=3}
+df1 = data %>% group_by(y, job) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(job) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="job") %>% mutate(share = records/total_records)
+
+ggplot(df3, aes(x = reorder(job, -records), y=records, fill=y, ymax=records*1.15)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("job") +
+  geom_text(stat='identity', aes(label=paste(records, "\n(", label_percent(accuracy=1)(share), ")")), vjust=-0.25, position = position_dodge(width = .9),  size=3) + 
+  ggtitle("Distribución por trabajo")
+```
+
+Parece que los trabajos que mejor ratio de conversión tienen son las de jubilado, desempleado y estudiante, por lo que job podría ser un buen predictor. Ninguna parece estar relacionada con 
+una forma activa de empleo, lo cual podría indicar la naturaleza del producto financiero ofrecido
+
+
+**Estado civil**
+
+```{r histogram_marital, warning=FALSE, message=FALSE, fig.width=12,fig.height=3}
+df1 = data %>% group_by(y, marital) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(marital) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="marital") %>% mutate(share = records/total_records)
+
+ggplot(df3, aes(x = reorder(marital, -records), y=records, fill=y, ymax=records*1.15)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("marital") +
+  geom_text(stat='identity', aes(label=paste(records, "\n(", label_percent(accuracy=1)(share), ")")), vjust=-0.25, position = position_dodge(width = .9),  size=3) + 
+  ggtitle("Distribución por estado civil")
+```
+
+No hay grandes diferencias en la contratación cuando clasificamos a la gente por su estado civil
+
+
+**Educación**
+
+```{r histogram_education, warning=FALSE, message=FALSE, fig.width=12,fig.height=3}
+df1 = data %>% group_by(y, education) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(education) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="education") %>% mutate(share = records/total_records)
+
+ggplot(df3, aes(x = reorder(education, -records), y=records, fill=y, ymax=records*1.15)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("education") +
+  geom_text(stat='identity', aes(label=paste(records, "\n(", label_percent(accuracy=1)(share), ")")), vjust=-0.25, position = position_dodge(width = .9),  size=3) + 
+  ggtitle("Distribución por educación")
+```
+
+La educación parece que juega también un papel importante en la predicción del éxito de la campaña, siendo university.degree y professional.course las educaciones con mejor ratio de conversión. 
+Por lo que también podría ser un buen predictor
+
+
+**Impago**
+
+```{r histogram_default, warning=FALSE, message=FALSE, fig.width=12,fig.height=3}
+df1 = data %>% group_by(y, default) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(default) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="default") %>% mutate(share = records/total_records)
+
+ggplot(df3, aes(x = reorder(default, -records), y=records, fill=y, ymax=records*1.15)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("default") +
+  geom_text(stat='identity', aes(label=paste(records, "\n(", label_percent(accuracy=1)(share), ")")), vjust=-0.25, position = position_dodge(width = .9),  size=3) + 
+  ggtitle("Distribución por impago")
+```
+
+El impago sí que parece un predictor relevante, dado que la gente que no tiene default tiene un ratio de conversión mejor. El valor de unknown podría justificarse con que la gente no quiere 
+decir que hay tenido impagos, y estos impagos podrían implicar una menor capacidad económica y, por tanto, una menor porbabilidad de contratar un producto financiero
+
+
+**Hipoteca**
+
+```{r histogram_housing, warning=FALSE, message=FALSE, fig.width=12,fig.height=3}
+df1 = data %>% group_by(y, housing) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(housing) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="housing") %>% mutate(share = records/total_records)
+
+ggplot(df3, aes(x = reorder(housing, -records), y=records, fill=y, ymax=records*1.15)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("housing") +
+  geom_text(stat='identity', aes(label=paste(records, "\n(", label_percent(accuracy=1)(share), ")")), vjust=-0.25, position = position_dodge(width = .9),  size=3) + 
+  ggtitle("Distribución por hipoteca")
+```
+
+No se aprecian diferencias en si el contactado tiene una hipoteca o no
+
+
+**Préstamo**
+
+```{r histogram_loan, warning=FALSE, message=FALSE, fig.width=12,fig.height=3}
+df1 = data %>% group_by(y, loan) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(loan) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="loan") %>% mutate(share = records/total_records)
+
+ggplot(df3, aes(x = reorder(loan, -records), y=records, fill=y, ymax=records*1.15)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("loan") +
+  geom_text(stat='identity', aes(label=paste(records, "\n(", label_percent(accuracy=1)(share), ")")), vjust=-0.25, position = position_dodge(width = .9),  size=3) + 
+  ggtitle("Distribución por préstamo")
+```
+
+Tampoco parece haber diferencias teniendo en cuenta si la persona tenía un préstamo o no
+
+
+**Dispositivo de contacto**
+
+```{r histogram_contact, warning=FALSE, message=FALSE, fig.width=12,fig.height=3}
+df1 = data %>% group_by(y, contact) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(contact) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="contact") %>% mutate(share = records/total_records)
+
+ggplot(df3, aes(x = reorder(contact, -records), y=records, fill=y, ymax=records*1.15)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("contact") +
+  geom_text(stat='identity', aes(label=paste(records, "\n(", label_percent(accuracy=1)(share), ")")), vjust=-0.25, position = position_dodge(width = .9),  size=3) + 
+  ggtitle("Distribución por dispositivo de contacto")
+```
+
+Parece que la forma de contactar con cada persona podría ser un buen predictor, teniendo el teléfono una  ratio de conversión 3 veces superior al teléfono fijo
+
+
+**Mes de contacto**
+
+```{r histogram_month, warning=FALSE, message=FALSE, fig.width=12,fig.height=3}
+df1 = data %>% group_by(y, month) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(month) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="month") %>% mutate(share = records/total_records)
+
+positions <- c("mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
+
+ggplot(df3, aes(x = reorder(month, -records), y=records, fill=y, ymax=records*1.15)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("month") +
+  geom_text(stat='identity', aes(label=paste(records, "\n(", label_percent(accuracy=1)(share), ")")), vjust=-0.25, position = position_dodge(width = .9),  size=3) + 
+  ggtitle("Distribución por mes de contacto") + 
+  scale_x_discrete(limits = positions)
+```
+
+El mes también parece un muy buen predictor, habiendo meses como marzo, septiembre, octubre o diciembre, con una ratio de conversión muy alta. Cabe destacar también que son los meses con
+un menor número de llamadas
+
+
+**Día de la semana de contacto**
+
+```{r histogram_day_of_week, warning=FALSE, message=FALSE, fig.width=12,fig.height=3}
+df1 = data %>% group_by(y, day_of_week) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(day_of_week) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="day_of_week") %>% mutate(share = records/total_records)
+
+positions <- c("mon", "tue", "wed", "thu", "fri")
+
+ggplot(df3, aes(x = reorder(day_of_week, -records), y=records, fill=y, ymax=records*1.15)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("day_of_week") +
+  geom_text(stat='identity', aes(label=paste(records, "\n(", label_percent(accuracy=1)(share), ")")), vjust=-0.25, position = position_dodge(width = .9),  size=3) + 
+  ggtitle("Distribución por día de contacto") + 
+  scale_x_discrete(limits = positions)
+```
+
+No parece haber ninguna influencia en el resultado de la camapaña por parte del día de la semana de contacto
+
+
+**Resultado de la campaña previa**
+
+```{r histogram_poutcome, warning=FALSE, message=FALSE, fig.width=12,fig.height=3}
+df1 = data %>% group_by(y, poutcome) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(poutcome) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="poutcome") %>% mutate(share = records/total_records)
+
+ggplot(df3, aes(x = reorder(poutcome, -records), y=records, fill=y, ymax=records*1.15)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("poutcome") +
+  geom_text(stat='identity', aes(label=paste(records, "\n(", label_percent(accuracy=1)(share), ")")), vjust=-0.25, position = position_dodge(width = .9),  size=3) + 
+  ggtitle("Distribución por el resultado de la campaña previa")
+```
+
+El resultado de la campaña previa también es un buen predictor
+
+
+**Resultado de esta campaña**
+
+```{r histogram_y, warning=FALSE, message=FALSE, fig.width=12,fig.height=3}
+df1 = data %>% group_by(y) %>% summarise(records = n())
+
+ggplot(df1, aes(x = reorder(y, -records), y=records, fill=y, ymax=records*1.15)
+                  ) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("y") +
+  geom_text(stat='identity', aes(label=records), vjust=-0.25, position = position_dodge(width = .9),  size=3) + 
+  ggtitle("Distribución por el resultado de esta campaña")
+
+df1 = data %>% group_by(y, poutcome) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(poutcome) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="poutcome") %>% mutate(share = records/total_records)
+
+ggplot(df3, aes(x = reorder(poutcome, -records), y=records, fill=y, ymax=records*1.15)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("poutcome") +
+  geom_text(stat='identity', aes(label=paste(records, "\n(", label_percent(accuracy=1)(share), ")")), vjust=-0.25, position = position_dodge(width = .9),  size=3) + 
+  ggtitle("Distribución por el resultado de esta campaña")
+```
+
+
+Antes de continuar con el análisis, vamos a analizar en mayor profundidad la relación entre distantas características de los registros
+
+También intentaremos analizar por qué hay determinadas variables que son tan relevantes, sin que haya una lógica aparente detrás de ello, como el dispositivo de contacto o el mes de contacto. Y 
+trataremos de averiguar si alguna variable no es relevante por sí sola, si no que depende de otras variables, y poder así reducir variables redundantes
+
+
+**Edad y estado civil**
+
+```{r hist_age_marital, warning=FALSE, message=FALSE, fig.width=12,fig.height=5}
+ggplot(data, aes(x=age, fill=marital)) + 
+  geom_bar() + 
+  ggtitle ("Edad y estado civil") + 
+  xlab("Edad") + 
+  ylab("Estado civil") + 
+  labs(fill="y") 
+```
+
+Podemos ver que entre los 18 y los 30, el estado civil predominante es el de soltero, mientras que el de casado es el más présente a partir de los 30
+
+
+**Edad & trabajo**
+
+```{r hist_age_job, warning=FALSE, message=FALSE, fig.width=12,fig.height=5}
+ggplot(data,aes(x=age, fill=job)) + 
+  geom_bar() + 
+  ggtitle ("Edad y trabajo") + 
+  xlab("Edad") + 
+  ylab("Trabajo") + 
+  labs(fill="y")
+```
+
+**Mes & trabajo**
+
+```{r hist_age_job, warning=FALSE, message=FALSE, fig.width=12,fig.height=5}
+positions <- c("mar", "sep", "oct", "dec")
+
+ggplot(data,aes(x=month, fill=job)) + 
+  geom_bar() + 
+  ggtitle ("Marzo, Spetiembre, Octubre y Diciembre: los meses con MEJOR ratio de conversión") + 
+  xlab("Edad") + 
+  ylab("Trabajo") + 
+  labs(fill="y") + 
+  scale_x_discrete(limits = positions)
+```
+```{r hist_age_job, warning=FALSE, message=FALSE, fig.width=12,fig.height=5}
+positions <- c("apr", "may", "jun", "jul", "aug", "nov")
+
+ggplot(data,aes(x=month, fill=job)) + 
+  geom_bar() + 
+  ggtitle ("Abril, Mayo, Junio, Julio, Agosto y Noviembre: los meses con PEOR ratio de conversión") + 
+  xlab("Edad") + 
+  ylab("Trabajo") + 
+  labs(fill="y") + 
+  scale_x_discrete(limits = positions)
+```
+
+Parece que la principal diferencia entre ambos grupos de meses es la menor presencia de trabajadores blue-collar en el primer grupo, con una mala ratio de conversión, y la mayor presencia de 
+estudiantes y, sobre todo, de gente retirada
+
+
+**Imputación de valores NA**
+
+Una vez conocemos los diferentes valores que toman las dimensiones de nuestro dataset, sustituimos los valores unkown por NA, para poder trabajar con datos faltantes
+
+```{r na_dimension, warning=FALSE, message=FALSE}
+data$job[data$job=='unknown'] <- NA
+data$marital[data$marital=='unknown'] <- NA
+data$education[data$education=='unknown'] <- NA
+#data$default[data$default=='unknown'] <- NA
+#data$housing[data$housing=='unknown'] <- NA
+#data$loan[data$loan=='unknown'] <- NA
+```
+
+Una vez hehco esto, visualizamos el porcentaje de valores nulos que hay en nuestros datos, así como la combinación de valores nulos entre las diferentes dimensiones
+
+```{r na_visualization, warning=FALSE, message=FALSE}
+aggr_plot <- aggr(data[,2:7], col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE,
+                  labels=names(data[,2:7]), cex.axis=.7, gap=3, 
+                  ylab=c("Histograma de datos faltantes","Patrones"))
+```
+
+Ya podemos separar entre el train y test, dado que ya hemos hecho la limpieza de datos pertinente
+
+```{r train_test, warning=FALSE, message=FALSE}
+train_test = train_test_split(data, 
+                              split_type = "Random", 
+                              prop = 0.75)
+data_train = train_test$train
+data_test = train_test$test
+
+write.csv(data_train, file='../data/data_train.csv', row.names=TRUE)
+write.csv(data_test, file='../data/data_test.csv', row.names=TRUE)
+```
+
+
+
+Una vez conocemos cómo se distribuyen los datos cualitativos, contiuamos analizando los datos cuantitativos, de forma tanto descriptiva como con visualizaciones
+
+```{r numeric_data, warning=FALSE, message=FALSE}
+summary(data_train)
+```
+
+**Edad**
+
+```{r density_age, fig.align='center', fig.show='hold', fig.width=12,fig.height=5}
+ggplot(data_train, aes(x=age, color=y)) +
+  geom_density() + 
+  scale_y_continuous(labels = scales::percent) + 
+  scale_x_continuous(labels = comma)
+
+df1 = data %>% group_by(y, age) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(age) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="age") %>% mutate(share = records/total_records)
+ggplot(df3 %>% filter(y=='yes'), 
+       aes(x=age, y=share*1500)) + 
+  geom_bar(df2, mapping = aes(x=age, y=total_records), stat = "identity", fill='coral1') +
+  geom_line(color='chartreuse3') + 
+  scale_y_continuous(name='Registros y Porcentaje de contratación') +
+  geom_text(stat='identity', aes(label=label_percent(accuracy=1)(share)), vjust=-1.5, position = position_dodge(width = .9),  size=2)
+
+ggplot(data_train, aes(x=age, y=y)) + 
+  geom_boxplot() +
+  coord_flip() + 
+  geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
+```
+
+Como podemos observar en la gráfica de densidad, parece que las personas que terminan contratando son ligeramente más mayores que las que no. Y de hecho, como podemos ver en el gráfico de cajas,
+las edades son de media más bajas y están menos dispersas para las personas que no contratan.
+
+
+**Duración de la llamada**
+
+```{r density_duration, fig.align='center', fig.show='hold', fig.width=12,fig.height=5}
+ggplot(data_train, aes(x=duration, color=y)) +
+  geom_density() + 
+  scale_y_continuous(labels = scales::percent) + 
+  scale_x_continuous(labels = comma)
+
+ggplot(data_train, aes(x=duration, y=y)) + 
+  geom_boxplot() +
+  coord_flip() + 
+  geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
+```
+
+En este caso, únicamente confirmamos lo que ya sospechábamos, y es que cuanto mayor es la duración de la llamada, mayor es la proporción de personas que termina contratando. La dispersión también
+es mayor en el caso de la gente que contrata
+
+
+**Número de contactos durante esta campaña**
+
+```{r density_duration, fig.align='center', fig.show='hold', fig.width=12,fig.height=5}
+ggplot(data_train, aes(x=campaign, color=y)) +
+  geom_density() + 
+  scale_y_continuous(labels = scales::percent) + 
+  scale_x_continuous(labels = comma)
+
+df1 = data %>% group_by(y, campaign) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(campaign) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="campaign") %>% mutate(share = records/total_records)
+ggplot(df3 %>% filter(y=='yes'), 
+       aes(x=campaign, y=share*80000)) + 
+  geom_bar(df2, mapping = aes(x=campaign, y=total_records), stat = "identity", fill='coral1') +
+  geom_line(color='chartreuse3') + 
+  scale_y_continuous(name='Registros y Porcentaje de contratación') +
+  geom_text(stat='identity', aes(label=label_percent(accuracy=1)(share)), vjust=-1.5, position = position_dodge(width = .9),  size=3)
+
+ggplot(data_train, aes(x=campaign, y=y)) + 
+  geom_boxplot() +
+  coord_flip() + 
+  geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
+```
+
+Podemos ver que conforme aumentan el número de contactos, la ratio de conversión decrece, lo cual podría indicar que es un buen indicador
+
+
+**Días desde el contacto previo**
+
+Antes de nada, se debe comentar que el valor 999 corresponde a gente que nunca se le ha contactado previamente. 
+
+```{r density_pdays, fig.align='center', fig.show='hold', fig.width=12,fig.height=5}
+ggplot(data_train, aes(x=pdays, color=y)) +
+  geom_density() + 
+  scale_y_continuous(labels = scales::percent) + 
+  scale_x_continuous(labels = comma)
+
+ggplot(data_train, aes(x=pdays, y=y)) + 
+  geom_boxplot() +
+  coord_flip() + 
+  geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
+
+ggplot(data_train %>% filter(pdays!=999), 
+       aes(x=pdays, y=y)) + 
+  geom_boxplot() +
+  coord_flip() + 
+  geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
+```
+
+En este caso, parece que hay una concentración muy alta de la gente a la que no se ha contactado nunca dentro de la gente que no ha contratado. Sin embargo, si miramos a la gente que sí que 
+contrata, podemos ver que parece que hay una concentración mayor en las personas que se les contactó entre hace 750 días y "1000" días.
+
+Dado que si tenemos en cuenta a las personas que nunca fueron contactadas el boxplot no es interpretable, plasmamos otro filtrando para que no contengan estos registros. Y nos podemos dar cuenta 
+de que hemos malinterpretado el gráfico de densidad, y que se debe a una alta concentración de valores que nunca han sido contactados. De acuerdo a este último boxplot, la media entre ambos grupos es muy similar, aunque para la gente que no termina contratando los datos son un poco más dispersos.
+
+
+Dado que es complicado trabajar con un datos numérico de 999 cuando no significa 999, y dado que las ratios de conversión son relativamente similares cuando el valor no es 999, clasificamos 
+a los registros en base a si han sido contactados o no
+
+```{r chart_pdays_aux, fig.align='center', fig.show='hold', fig.width=12, fig.height=5}
+df1 = data %>% group_by(y, pdays) %>% summarise(records = n(), .groups = 'drop')
+ggplot(df1, aes(fill=y, y=records, x=factor(pdays))) + 
+    geom_bar(position="fill", stat="identity")
+
+df1 = data %>% mutate(pdays_aux = ifelse(pdays == 999,0,1))
+df1 = df1 %>% group_by(y, pdays_aux) %>% summarise(records = n(), .groups = 'drop')
+
+df2 = data %>% mutate(pdays_aux = ifelse(pdays == 999,0,1))
+df2 = df2 %>% group_by(pdays_aux) %>% summarise(total_records = n())
+
+df3 = df1 %>% left_join(df2, by="pdays_aux") %>% mutate(share = records/total_records)
+
+ggplot(df3 %>% filter(y=='yes'), 
+       aes(x=pdays_aux, y=share*40000)) + 
+  geom_bar(df2, mapping = aes(x=pdays_aux, y=total_records), stat = "identity", fill='coral1') +
+  geom_line(color='chartreuse3') + 
+  scale_y_continuous(name='Registros y Porcentaje de contratación') +
+  geom_text(stat='identity', aes(label=label_percent(accuracy=1)(share)), vjust=-1.5, position = position_dodge(width = .9),  size=3)
+```
+
+Los resultados van en línea con lo esperado, teniendo una ratio de conversión más alta la gente que nunca fueron contactados en la campaña anterior 
+
+
+**Número de veces contactado antes de esta campaña**
+
+```{r density_previous, fig.align='center', fig.show='hold', fig.width=12, fig.height=5}
+ggplot(data_train, aes(x=previous, color=y)) +
+  geom_density() + 
+  scale_y_continuous(labels = scales::percent) + 
+  scale_x_continuous(labels = comma)
+
+df1 = data %>% group_by(y, previous) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(previous) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="previous") %>% mutate(share = records/total_records)
+ggplot(df3 %>% filter(y=='yes'), 
+       aes(x=previous, y=share*40000)) + 
+  geom_bar(df2, mapping = aes(x=previous, y=total_records), stat = "identity", fill='coral1') +
+  geom_line(color='chartreuse3') + 
+  scale_y_continuous(name='Registros y Porcentaje de contratación') +
+  geom_text(stat='identity', aes(label=label_percent(accuracy=1)(share)), vjust=-1.5, position = position_dodge(width = .9),  size=3)
+
+ggplot(data_train, aes(x=previous, y=y)) + 
+  geom_boxplot() +
+  coord_flip() + 
+  geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
+```
+
+Parece que la distribución es más o menos similar para ambos grupos de personas, de acuerdo a la función de densidad. Aunque viendo el gráfico de barras apiladas y el gráfico de cajas, parece 
+que hay una mayor concentración de personas que nunca han sido contactadas previamente entre la gente que nunca contrató
+
+
+**Ratio de variación del empleo**
+
+```{r density_emp_var_rate, fig.align='center', fig.show='hold', fig.width=12, fig.height=5}
+ggplot(data_train, aes(x=emp.var.rate, color=y)) +
+  geom_density() + 
+  scale_y_continuous(labels = scales::percent) + 
+  scale_x_continuous(labels = comma)
+
+df1 = data %>% group_by(y, emp.var.rate) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(emp.var.rate) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="emp.var.rate") %>% mutate(share = records/total_records)
+ggplot(df3 %>% filter(y=='yes'), 
+       aes(x=emp.var.rate, y=share*25000)) + 
+  geom_bar(df2, mapping = aes(x=emp.var.rate, y=total_records), stat = "identity", fill='coral1') +
+  geom_line(color='chartreuse3') + 
+  scale_y_continuous(name='Registros y Porcentaje de contratación') +
+  geom_text(stat='identity', aes(label=label_percent(accuracy=1)(share)), vjust=-1.5, position = position_dodge(width = .9),  size=3)
+
+ggplot(data_train, aes(x=emp.var.rate, y=y)) + 
+  geom_boxplot() +
+  coord_flip() + 
+  geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
+```
+
+Parece que cuanto más aumenta el empleo, mayor es la proporción de personas que no termina contratando, lo cual podemos confirmar con el gráfico de cajas. Cuanto más positiva es la variación 
+en el empleo, menos gente contrata, lo cual podría estar relacionado con que la gente tenga menos necesidad de contratar cuando las condiciones macro son mejores
+
+
+**Índice de precios al consumo**
+
+```{r density_cons_price_idx, fig.align='center', fig.show='hold', fig.width=12, fig.height=5}
+ggplot(data_train, aes(x=cons.price.idx, color=y)) +
+  geom_density() + 
+  scale_y_continuous(labels = scales::percent) + 
+  scale_x_continuous(labels = comma)
+
+df1 = data %>% group_by(y, cons.price.idx) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(cons.price.idx) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="cons.price.idx") %>% mutate(share = records/total_records)
+ggplot(df3 %>% filter(y=='yes'), 
+       aes(x=cons.price.idx, y=share*12000))  + 
+  geom_bar(df2, mapping = aes(x=cons.price.idx, y=total_records), stat = "identity", fill='coral1')+
+  geom_line(color='chartreuse3') + 
+  scale_y_continuous(name='Registros y Porcentaje de contratación') +
+  geom_text(stat='identity', aes(label=label_percent(accuracy=1)(share)), vjust=-1.5, position = position_dodge(width = .9),  size=3)
+
+ggplot(data_train, aes(x=cons.price.idx, y=y)) + 
+  geom_boxplot() +
+  coord_flip() + 
+  geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
+```
+
+Viendo las gráficas de densidad y el gráfico de líneas, no parece que haya una relación lógica entre ambas variables, pero viendo el boxplot nos damos cuenta de que como antes, cuantos 
+mejor es el indicador macro, menor es la cantidad de gente que contrata el producto
+
+
+**Índice de confianza del consumidor**
+
+```{r density_cons_conf_idx, fig.align='center', fig.show='hold', fig.width=12, fig.height=5}
+ggplot(data_train, aes(x=cons.conf.idx, color=y)) +
+  geom_density() + 
+  scale_y_continuous(labels = scales::percent) + 
+  scale_x_continuous(labels = comma)
+
+ggplot(data_train, aes(x=cons.conf.idx, y=y)) + 
+  geom_boxplot() +
+  coord_flip() + 
+  geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
+```
+
+**Este todavía no entiendo muy bien la relación, porque parece que no hay ninguna lógica detrás**
+
+
+**Euribor a 3 meses**
+
+```{r density_euribor3m, fig.align='center', fig.show='hold', fig.width=12, fig.height=5}
+ggplot(data_train, aes(x=euribor3m, color=y)) +
+  geom_density() + 
+  scale_y_continuous(labels = scales::percent) + 
+  scale_x_continuous(labels = comma)
+
+ggplot(data_train, aes(x=euribor3m, y=y)) + 
+  geom_boxplot() +
+  coord_flip() + 
+  geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
+```
+
+Cuanto mayor es el euribor, menor cantidad de gente contrata, y viceversa, cuanto menor es más gente contrata. Esto podría deberse a que un menor euribor implica menores intereses en el 
+producto contratado. El gráfico de cajas nos arroja unos resultados similares
+
+
+**Número de empleados**
+
+```{r density_nr_employed, fig.align='center', fig.show='hold', fig.width=12, fig.height=5}
+ggplot(data_train, aes(x=nr.employed, color=y)) +
+  geom_density() + 
+  scale_y_continuous(labels = scales::percent) + 
+  scale_x_continuous(labels = comma)
+
+df1 = data %>% group_by(y, nr.employed) %>% summarise(records = n(), .groups = 'drop')
+df2 = data %>% group_by(nr.employed) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="nr.employed") %>% mutate(share = records/total_records)
+ggplot(df3 %>% filter(y=='yes'), 
+       aes(x=nr.employed, y=share*25000)) + 
+  geom_bar(df2, mapping = aes(x=nr.employed, y=total_records), stat = "identity", fill='coral1') +
+  geom_line(color='chartreuse3') + 
+  scale_y_continuous(name='Registros y Porcentaje de contratación') +
+  geom_text(stat='identity', aes(label=label_percent(accuracy=1)(share)), vjust=-1.5, position = position_dodge(width = .9),  size=3)
+
+ggplot(data_train, aes(x=nr.employed, y=y)) + 
+  geom_boxplot() +
+  coord_flip() + 
+  geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
+```
+
+A mayor número de emplados, menor es la cantidad de gente que contrata el producto, y viceversa. Esto puede deberse a que conforme mejores son las condiciones macroeconómicas, menor necesidad 
+tiene la gente de contratar este tipo de productos
+
+
