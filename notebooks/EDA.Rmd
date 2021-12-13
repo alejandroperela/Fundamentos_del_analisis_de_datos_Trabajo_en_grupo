@@ -714,6 +714,21 @@ ggplot(data_train, aes(x=age, fill=marital)) +
 Podemos ver que entre los 18 y los 30, el estado civil predominante es el de soltero, mientras que el de casado, y después el de divorciado, son los más presentes a partir de los 30
 
 
+**Edad y dispositivo de contacto**
+
+```{r hist_age_contact, warning=FALSE, message=FALSE, fig.width=12, fig.height=5}
+ggplot(data_train, aes(x=age, fill=contact)) + 
+  geom_bar() + 
+  ggtitle ("Edad y dispositivo de contacto") + 
+  xlab("Edad") + 
+  ylab("Dispositivo de contacto") + 
+  labs(fill="y") 
+```
+ 
+Observamos que por edad, en torno a los 60 años hay menor ratio de conversión por contacto vía teléfono fijo y un descenso abrupto en la cantidad de contactos a personas de esa edad.
+
+
+
 **Mes & trabajo**
 
 ```{r hist_month_job_1, warning=FALSE, message=FALSE, fig.width=12, fig.height=5}
