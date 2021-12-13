@@ -131,7 +131,7 @@ data_train$month<-as.factor(data_train$month)
 data_train$day_of_week<-as.factor(data_train$day_of_week)
 data_train$poutcome<-as.factor(data_train$poutcome)
 data_train$y<-as.factor(data_train$y)
-
+   
 #reordenacion
 data_train$default = factor(data_train$default, levels=c('yes','no','unknown'))
 data_train$housing = factor(data_train$housing, levels=c('yes','no','unknown'))
