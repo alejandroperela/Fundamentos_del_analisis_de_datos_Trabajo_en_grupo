@@ -22,6 +22,10 @@ library(ggplot2)
 library(scales)
 library(creditmodel)
 library(corrplot)
+library(psych)
+library(caret)
+library(caTools)
+library(vcd)
 ```
 
 
@@ -63,7 +67,7 @@ Diccionario con la definición de los diferentes campos que incluye el dataset
   21 - **y** - has the client subscribed a term deposit? (binary: "yes","no")  
 
 
-# Lectura y preparacion de datos
+# Lectura y preparación de datos
 
 Cargamos los datos originales para trabajar sobre ellos
 
@@ -805,4 +809,46 @@ En este caso, parecen tener mayor relevancia los trabajadores de tipo admin. y t
 parece una combinación de varios facores, campaña previa, trabajo..., lo que ha provocado una diferencia en la conversión entre ambas formas de contacto
 
 
+##Relación entre variables numéricas.
+
+```{r cor_plot_numeric, fig.align='center', fig.show='hold', fig.width=12, fig.height=7}
+data_trainnum <- select_if(data_train, is.numeric)
+cor(data_trainnum)
+corPlot(data_trainnum, cex = 0.5, main = "Matriz de correlación", upper = FALSE)
+```
+Las variables edad, duración y campaña son las tres variables que muestran menor correlación con el resto, por lo que pueden ser variables poco relevantes para el modelo. 
+
+Relativo a la variable previous, observamos que es la única que muestra fundamentalmente correlaciones negativas, por lo que es relevante considerarla en el modelo futuro.
+
+
+##Modelo de regresión logística
+
+Debido a que la variable y (), es binaria, no se puede plantear la regresión lineal. Por tanto, se plantea un modelo de regresión logística.
+
+Previo a la aplicación del modelo, convertimos los valores en 0 y 1.
+
+
+```{r}
+data_train$y[which(data_train$y =="no")] <- 0
+data_train$y[which(data_train$y =="yes")] <- 1
+data_train$y <- as.numeric(data_train$y)
+``` 
+#Modelo 1. Modelo con todas las variables.
+```{r}
+m1 <- glm(y ~ ., family = binomial, data= data_train)
+summary(m1)
+```
+#Predicciones y matriz de confusión.
+
+```{r}
+predicciones <- ifelse(test = m1$fitted.values > 0.5, yes = 1, no = 0)
+matriz_confusion <- table(m1$model$y, predicciones,
+                          dnn = c("observaciones", "predicciones"))
+matriz_confusion
+```
+Se observa una mejor ratio de TN que de TP. 
+```{r}
+mosaic(matriz_confusion, shade = T, colorize = T,
+       gp = gpar(fill = matrix(c("green3", "red2", "red2", "green3"), 2, 2)))
+``` 
 
