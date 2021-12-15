@@ -1,6 +1,6 @@
 ---
 title: "EDA_2"
-author: "Alejandro Perela"
+author: "Andrea Condado, Alejandro Perela y Miguel Calvo"
 date: "20/11/2021"
 output:
   html_document:
@@ -26,6 +26,8 @@ library(psych)
 library(caret)
 library(caTools)
 library(vcd)
+library(pROC)
+library(texreg)
 ```
 
 
@@ -821,24 +823,46 @@ Las variables edad, duración y campaña son las tres variables que muestran men
 Relativo a la variable previous, observamos que es la única que muestra fundamentalmente correlaciones negativas, por lo que es relevante considerarla en el modelo futuro.
 
 
-##Modelo de regresión logística
+##Modelos de regresión logística
 
 Debido a que la variable y (), es binaria, no se puede plantear la regresión lineal. Por tanto, se plantea un modelo de regresión logística.
 
-Previo a la aplicación del modelo, convertimos los valores en 0 y 1.
+Previo a la aplicación del modelo, convertimos los valores en 0 y 1, tanto del train como del test.
 
 
 ```{r}
 data_train$y[which(data_train$y =="no")] <- 0
 data_train$y[which(data_train$y =="yes")] <- 1
 data_train$y <- as.numeric(data_train$y)
+data_test$y[which(data_test$y =="no")] <- 0
+data_test$y[which(data_test$y =="yes")] <- 1
+data_test$y <- as.numeric(data_test$y)
 ``` 
-#Modelo 1. Modelo con todas las variables.
+#Modelos.
+
 ```{r}
-m1 <- glm(y ~ ., family = binomial, data= data_train)
-summary(m1)
+m0 <- glm(y ~1, data = data_train, family = "binomial")
+    
+m1 <- glm(y ~ ., data = data_train, family = "binomial")
+    
+m2 <- step_model <- step(m0, scope = list(lower = m0, upper = m1), direction = "forward")
 ```
-#Predicciones y matriz de confusión.
+```{r}
+step_prob <- predict(m2, type = "response")
+    
+ROC <- roc(data_train$y, step_prob)
+plot(ROC, col = "red")
+auc(ROC)
+```
+#Variables significativas del modelo completo.
+```{r}
+sig.var<- summary(m1)$coeff[-1,4] <0.01
+names(sig.var)[sig.var == TRUE]
+```
+
+Por tanto, las variables significativas del modelo son ...
+
+#Predicciones y matriz de confusión del modelo completo.
 
 ```{r}
 predicciones <- ifelse(test = m1$fitted.values > 0.5, yes = 1, no = 0)
@@ -847,8 +871,87 @@ matriz_confusion <- table(m1$model$y, predicciones,
 matriz_confusion
 ```
 Se observa una mejor ratio de TN que de TP. 
+
 ```{r}
 mosaic(matriz_confusion, shade = T, colorize = T,
        gp = gpar(fill = matrix(c("green3", "red2", "red2", "green3"), 2, 2)))
 ``` 
+```{r}
+pred1<- predict.glm(m1,newdata = data_test, type="response")
+result1<- table(data_test$y, floor(pred1+0.5))
+result1
+```
 
+Realizamos la curva ROC para evaluar el AUC del modelo.
+
+```{r}
+ROC <- roc(data_test$y, pred1)
+plot(ROC, col = "red")
+auc(ROC)
+```
+
+El AUC tiene un valor muy adecuado. Sin embargo, analizaremos un modelo más parsimonioso que el modelo completo. 
+
+
+#Modelo 3. Modelo con las variables significativas.
+```{r}
+m3 <- glm(y ~ job+education+default+contact+month+duration+campaign+pdays+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data= data_train)
+summary(m3)
+```
+```{r}
+sig.var<- summary(m3)$coeff[-1,4] <0.01
+names(sig.var)[sig.var == TRUE]
+```
+
+Por tanto, las variables significativas del modelo son ...
+
+```{r}
+AIC(m3)
+BIC(m3)
+```
+#Predicciones y matriz de confusión.
+
+```{r}
+predicciones3 <- ifelse(test = m3$fitted.values > 0.5, yes = 1, no = 0)
+matriz_confusion3 <- table(m3$model$y, predicciones,
+                          dnn = c("observaciones", "predicciones"))
+matriz_confusion3
+```
+Se observa una mejor ratio de TN que de TP. 
+
+```{r}
+mosaic(matriz_confusion3, shade = T, colorize = T,
+       gp = gpar(fill = matrix(c("green3", "red2", "red2", "green3"), 2, 2)))
+``` 
+```{r}
+pred3<- predict.glm(m3,newdata = data_test, type="response")
+result3<- table(data_test$y, floor(pred3+0.5))
+result3
+```
+
+Realizamos la curva ROC para evaluar el AUC del modelo.
+
+```{r}
+ROC3 <- roc(data_test$y, pred3)
+plot(ROC3, col = "red")
+auc(ROC3)
+```
+
+El AUC tiene un valor muy adecuado, muy semejante al modelo completo. 
+```{r}
+anova(m1)
+```
+```{r coef_plot, fig.align='center', fig.show='hold', fig.width=12, fig.height=7}
+library(coefplot)
+coefplot(m1)  + 
+  theme_minimal() + 
+  labs(title="Estimación de coeficientes con error estandar", 
+       x="Estimación", 
+       y="Variable", 
+       caption="Elaboración propia")
+```
+
+```{r}
+library(texreg)
+htmlreg(list(m0, m1, m3), caption="Comparación de modelos logit")
+```
