@@ -955,3 +955,26 @@ coefplot(m1)  +
 library(texreg)
 htmlreg(list(m0, m1, m3), caption="Comparación de modelos logit")
 ```
+
+```{r}
+#m1
+dev <- m1$deviance
+nullDev <- m1$null.deviance
+modelChi <- nullDev - dev
+modelChi
+chigl <- m1$df.null - m1$df.residual
+chisq.prob <- 1 - pchisq(modelChi, chigl)
+chisq.prob
+R2.hl <- modelChi/m1$null.deviance
+R2.hl
+#m3
+dev1 <- m3$deviance
+nullDev1<- m3$null.deviance
+modelChi1 <- nullDev - dev
+modelChi1
+chigl1 <- m3$df.null - m3$df.residual
+chisq.prob1 <- 1 - pchisq(modelChi1, chigl1)
+chisq.prob1
+R2.hl1 <- modelChi1/m3$null.deviance
+R2.hl1
+```
