@@ -176,18 +176,20 @@ data_train %>% select(age,duration,campaign,pdays,previous,emp.var.rate,cons.con
           lower = list(continuous = "points"),
           diag = list(continuous = "densityDiag"),
           upper = list(continuous = "blank"))
-
-train_num<- data_train %>% 
-  select(age,duration,campaign,pdays,previous,emp.var.rate,cons.conf.idx, cons.price.idx,euribor3m,nr.employed)
-
-corr <- round(cor(train_num), 1)
-
-col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF",
-                          "#77AADD","#4477AA"))
-corrplot(corr, method = "shade", shade.col = NA, tl.col = "black",
-         tl.srt = 50, col = col(200), addCoef.col = "black",
-         order = "AOE", type = "lower", diag = F, addshade = "all") # col de colores nos expandira hasta 200 colores con las gamas usadas
 ```
+
+
+## Relación entre variables numéricas
+
+```{r cor_plot_numeric, fig.align='center', fig.show='hold', fig.width=12, fig.height=7}
+data_trainnum <- select_if(data_train, is.numeric)
+cor(data_trainnum)
+corPlot(data_trainnum, cex = 0.5, main = "Matriz de correlación", upper = FALSE)
+```
+Las variables edad, duración y campaña son las tres variables que muestran menor correlación con el resto, por lo que pueden ser variables poco relevantes para el modelo. 
+
+Relativo a la variable previous, observamos que es la única que muestra fundamentalmente correlaciones negativas, por lo que es relevante considerarla en el modelo futuro.
+
 
 # Transformacion de variables cuantitativas
 
