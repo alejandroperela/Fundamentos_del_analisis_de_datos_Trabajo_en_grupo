@@ -28,6 +28,7 @@ library(caTools)
 library(vcd)
 library(pROC)
 library(texreg)
+library(mice)
 ```
 
 
@@ -161,6 +162,15 @@ Una vez hecho esto, visualizamos el porcentaje de valores nulos que hay en nuest
 aggr_plot <- aggr(data_train[,2:7], col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE,
                   labels=names(data_train[,2:7]), cex.axis=.7, gap=3, 
                   ylab=c("Histograma de datos faltantes","Patrones"))
+```
+
+
+# Imputación de valores perdidos
+
+```{r impute data_train, warning=FALSE, message=FALSE}
+impdata_train <- mice(data_train, m=5, maxit = 50, method = 'pmm', seed = 1234)
+summary(impdata_train)
+sum(is.na(impdata_train))
 ```
 
 
