@@ -74,7 +74,6 @@ Diccionario con la definición de los diferentes campos que incluye el dataset
 Cargamos los datos originales para trabajar sobre ellos
 
 ```{r data_load, warning=FALSE, message=FALSE}
-#folder = '/home/alejandro/Documents/Master Data Science/Curso/Fundamentos del análisis de datos/Trabajo grupo/data/bank-additional/bank-additional.csv'
 data <- read.csv(file='../data/bank-additional/bank-additional-full.csv', sep=';')
 head(data)
 ```
@@ -265,8 +264,7 @@ ggplot(df3, aes(x = reorder(job, -records), y=records, fill=y, ymax=records*1.15
   ggtitle("Distribución por trabajo")
 ```
 
-Parece que los trabajos que mejor ratio de conversión tienen son las de jubilado, desempleado y estudiante, por lo que job podría ser un buen predictor. Ninguna parece estar relacionada con 
-una forma activa de empleo, lo cual podría indicar la naturaleza del producto financiero ofrecido
+Parece que los trabajos que mejor ratio de conversión tienen son los de jubilado, desempleado y estudiante, por lo que job podría ser un buen predictor. Ninguna parece estar relacionada con una forma activa de empleo, lo cual podría indicar la naturaleza del producto financiero ofrecido
 
 
 **Estado civil**
@@ -318,8 +316,7 @@ ggplot(df3, aes(x = reorder(default, -records), y=records, fill=y, ymax=records*
   ggtitle("Distribución por impago")
 ```
 
-El impago sí que parece un predictor relevante, dado que la gente que no tiene default tiene un ratio de conversión mejor. El valor de unknown podría justificarse con que la gente no quiere 
-decir que hay tenido impagos, y estos impagos podrían implicar una menor capacidad económica y, por tanto, una menor porbabilidad de contratar un producto financiero
+El impago sí que parece un predictor relevante, dado que la gente que no tiene default tiene un ratio de conversión mejor. El valor de unknown podría justificarse con que la gente no quiere decir que hay tenido impagos, y estos impagos podrían implicar una menor capacidad económica y, por tanto, una menor porbabilidad de contratar un producto financiero
 
 
 **Hipoteca**
@@ -370,7 +367,7 @@ ggplot(df3, aes(x = reorder(contact, -records), y=records, fill=y, ymax=records*
   ggtitle("Distribución por dispositivo de contacto")
 ```
 
-Parece que la forma de contactar con cada persona podría ser un buen predictor, teniendo el teléfono una  ratio de conversión 3 veces superior al teléfono fijo
+Parece que la forma de contactar con cada persona podría ser un buen predictor, teniendo el teléfono una ratio de conversión 3 veces superior al teléfono fijo
 
 
 **Mes de contacto**
@@ -464,9 +461,6 @@ ggplot(df1, aes(x = reorder(y, -records), y=records, fill=y, ymax=records*1.15)
 ```
 
 
-Antes de continuar con el análisis, vamos a analizar por qué hay determinadas variables que son tan relevantes, sin que haya una lógica aparente detrás de ello, como el dispositivo de contacto 
-o el mes de contacto. Y trataremos de averiguar si alguna variable no es relevante por sí sola, si no que depende de otras variables, y poder así reducir variables redundantes
-
 
 ## Graficos para EDA con variables cuantitativas individuales
 
@@ -494,8 +488,7 @@ ggplot(data_train, aes(x=age, y=y)) +
   geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
 ```
 
-Como podemos observar en la gráfica de densidad, parece que las personas que terminan contratando son ligeramente más mayores que las que no. Y de hecho, como podemos ver en el gráfico de cajas,
-las edades son de media más bajas y están menos dispersas para las personas que no contratan.
+Como podemos observar en la gráfica de densidad, parece que las personas que terminan contratando son ligeramente más mayores que las que no. Y de hecho, como podemos ver en el gráfico de cajas, las edades son de media más bajas y están menos dispersas para las personas que no contratan.
 
 
 **Duración de la llamada**
@@ -512,8 +505,7 @@ ggplot(data_train, aes(x=duration, y=y)) +
   geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
 ```
 
-En este caso, únicamente confirmamos lo que ya sospechábamos, y es que cuanto mayor es la duración de la llamada, mayor es la proporción de personas que termina contratando. La dispersión también
-es mayor en el caso de la gente que contrata
+En este caso, únicamente confirmamos lo que ya sospechábamos, y es que cuanto mayor es la duración de la llamada, mayor es la proporción de personas que termina contratando. La dispersión también es mayor en el caso de la gente que contrata
 
 
 **Número de contactos durante esta campaña**
@@ -567,8 +559,7 @@ ggplot(data_train, aes(x=previous, y=y)) +
   geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
 ```
 
-Parece que la distribución es más o menos similar para ambos grupos de personas, de acuerdo a la función de densidad. Aunque viendo el gráfico de barras apiladas y el gráfico de cajas, parece 
-que hay una mayor concentración de personas que nunca han sido contactadas previamente entre la gente que nunca contrató
+Parece que la distribución es más o menos similar para ambos grupos de personas, de acuerdo a la función de densidad. Aunque viendo el gráfico de barras apiladas y el gráfico de cajas, parece que hay una mayor concentración de personas que nunca han sido contactadas previamente entre la gente que nunca contrató
 
 
 **Ratio de variación del empleo**
@@ -595,8 +586,7 @@ ggplot(data_train, aes(x=emp.var.rate, y=y)) +
   geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
 ```
 
-Parece que cuanto más aumenta el empleo, mayor es la proporción de personas que no termina contratando, lo cual podemos confirmar con el gráfico de cajas. Cuanto más positiva es la variación 
-en el empleo, menos gente contrata, lo cual podría estar relacionado con que la gente tenga menos necesidad de contratar cuando las condiciones macro son mejores
+Parece que cuanto más aumenta el empleo, mayor es la proporción de personas que no termina contratando, lo cual podemos confirmar con el gráfico de cajas. Cuanto más positiva es la variación en el empleo, menos gente contrata, lo cual podría estar relacionado con que la gente tenga menos necesidad de contratar cuando las condiciones macro son mejores
 
 
 **Índice de precios al consumo**
@@ -623,11 +613,9 @@ ggplot(data_train, aes(x=cons.price.idx, y=y)) +
   geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
 ```
 
-Si miramos la gráfica de densidad, parece que cuando hay un mayor número de registros y el índice aumenta, la ratio de conversión es peor. Es cuando el índice está en mínimos cuando la ratio 
-es superior.
+Si miramos la gráfica de densidad, parece que cuando hay un mayor número de registros y el índice aumenta, la ratio de conversión es peor. Es decir, cuando el índice está en mínimos, la ratio es superior.
 
-El gráfico de cajas parece indicar algo parecido, dado que la media del índice es ligeramente superior entre los usuarios que no terminaron contratando, aunque esta diferencia no parece muy
-relevante.
+El gráfico de cajas parece indicar algo parecido, dado que la media del índice es ligeramente superior entre los usuarios que no terminaron contratando, aunque esta diferencia no parece muy relevante.
 
 
 **Índice de confianza del consumidor**
@@ -638,6 +626,16 @@ ggplot(data_train, aes(x=cons.conf.idx, color=y)) +
   scale_y_continuous(labels = scales::percent) + 
   scale_x_continuous(labels = comma)
 
+df1 = data_train %>% group_by(y, cons.conf.idx) %>% summarise(records = n(), .groups = 'drop')
+df2 = data_train %>% group_by(cons.conf.idx) %>% summarise(total_records = n())
+df3 = df1 %>% left_join(df2, by="cons.conf.idx") %>% mutate(share = records/total_records)
+ggplot(df3 %>% filter(y=='yes'), 
+       aes(x=cons.conf.idx, y=share*12000))  + 
+  geom_bar(df2, mapping = aes(x=cons.conf.idx, y=total_records), stat = "identity", fill='coral1')+
+  geom_line(color='chartreuse3') + 
+  scale_y_continuous(name='Registros y Porcentaje de contratación') +
+  geom_text(stat='identity', aes(label=label_percent(accuracy=1)(share)), vjust=-1.5, position = position_dodge(width = .9),  size=3)
+
 ggplot(data_train, aes(x=cons.conf.idx, y=y)) + 
   geom_boxplot() +
   coord_flip() + 
@@ -645,6 +643,7 @@ ggplot(data_train, aes(x=cons.conf.idx, y=y)) +
 ```
 
 **Este todavía no entiendo muy bien la relación, porque parece que no hay ninguna lógica detrás**
+La variable Índice de confianza del consumidor tiene un comportamiento similar a la variable Índice de precios al consumo puesto que cuando el índice está en mínimos la ratio es superior.
 
 
 **Euribor a 3 meses**
@@ -661,8 +660,7 @@ ggplot(data_train, aes(x=euribor3m, y=y)) +
   geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
 ```
 
-Cuanto mayor es el euribor, menor cantidad de gente contrata, y viceversa, cuanto menor es más gente contrata. Esto podría deberse a que un menor euribor implica menores intereses en el 
-producto contratado. El gráfico de cajas nos arroja unos resultados similares
+Cuanto mayor es el euribor, menor cantidad de gente contrata, y viceversa; cuanto menor es, más gente contrata. Esto podría deberse a que un menor euribor implica menores intereses en el producto contratado. El gráfico de cajas nos arroja unos resultados similares
 
 
 **Número de empleados**
@@ -691,6 +689,9 @@ ggplot(data_train, aes(x=nr.employed, y=y)) +
 
 A mayor número de emplados, menor es la cantidad de gente que contrata el producto, y viceversa. Esto puede deberse a que conforme mejores son las condiciones macroeconómicas, menor necesidad tiene la gente de contratar este tipo de productos
 
+
+
+A continuación, vamos a analizar por qué hay determinadas variables que son tan relevantes, sin que haya una lógica aparente detrás de ello, como el dispositivo de contacto o el mes de contacto. Y trataremos de averiguar si alguna variable no es relevante por sí sola, sino que depende de otras variables, y poder así reducir variables redundantes
 
 # Graficos para EDA multivariantes
 
@@ -781,8 +782,19 @@ ggplot(df1, aes(fill=poutcome, y=records, x=month)) +
   scale_y_continuous(labels = scales::percent)
 ```
 
-Parece que también está muy influenciado porque en estos meses la proporción de contactos que en el pasado resultaron en éxito es mucho mayor. De todas formas, parece que es una combinación 
-de varios factores, trabajo, éxito en pasadas campañas..., lo que ha hecho que la ratio en estos meses sea mejor
+Parece que también está muy influenciado porque en estos meses la proporción de contactos que en el pasado resultaron en éxito es mucho mayor. De todas formas, parece que es una combinación de varios factores, trabajo, éxito en pasadas campañas..., lo que ha hecho que la ratio en estos meses sea mejor
+
+
+**Dispositivo de contacto & trabajo**
+
+```{r hist_contact_job, warning=FALSE, message=FALSE, fig.width=12, fig.height=5}
+df1 = data_train %>% group_by(contact, job) %>% summarise(records = n(), .groups = 'drop')
+ggplot(df1, aes(fill=job, y=records, x=contact)) + 
+  geom_bar(position="fill", stat="identity") + 
+  scale_y_continuous(labels = scales::percent)
+```
+
+En este caso, parecen tener mayor relevancia los trabajadores de tipo admin. y technician con una mejor ratio de conversión, y menor los de tipo blue-collar con peor ratio. Como en el caso anterior parece una combinación de varios facores, campaña previa, trabajo..., lo que ha provocado una diferencia en la conversión entre ambas formas de contacto
 
 
 **Dispositivo de contacto & resultado de la campaña previa**
@@ -798,20 +810,8 @@ ggplot(df1, aes(fill=poutcome, y=records, x=contact)) +
 Podemos ver que success y failure tienen mayor peso en los contactado por teléfono, los cuales tienen una mejor ratio de conversión
 
 
-**Dispositivo de contacto & trabajo**
 
-```{r hist_contact_job, warning=FALSE, message=FALSE, fig.width=12, fig.height=5}
-df1 = data_train %>% group_by(contact, job) %>% summarise(records = n(), .groups = 'drop')
-ggplot(df1, aes(fill=job, y=records, x=contact)) + 
-  geom_bar(position="fill", stat="identity") + 
-  scale_y_continuous(labels = scales::percent)
-```
-
-En este caso, parecen tener mayor relevancia los trabajadores de tipo admin. y technician con una mejor ratio de conversión, y menor los de tipo blue-collar con peor ratio. Como en el caso anterior 
-parece una combinación de varios facores, campaña previa, trabajo..., lo que ha provocado una diferencia en la conversión entre ambas formas de contacto
-
-
-##Relación entre variables numéricas.
+# Relación entre variables numéricas.
 
 ```{r cor_plot_numeric, fig.align='center', fig.show='hold', fig.width=12, fig.height=7}
 data_trainnum <- select_if(data_train, is.numeric)
@@ -823,12 +823,12 @@ Las variables edad, duración y campaña son las tres variables que muestran men
 Relativo a la variable previous, observamos que es la única que muestra fundamentalmente correlaciones negativas, por lo que es relevante considerarla en el modelo futuro.
 
 
-##Modelos de regresión logística
+
+# Modelos de regresión logística
 
 Debido a que la variable y (), es binaria, no se puede plantear la regresión lineal. Por tanto, se plantea un modelo de regresión logística.
 
 Previo a la aplicación del modelo, convertimos los valores en 0 y 1, tanto del train como del test.
-
 
 ```{r}
 data_train$y[which(data_train$y =="no")] <- 0
@@ -838,7 +838,9 @@ data_test$y[which(data_test$y =="no")] <- 0
 data_test$y[which(data_test$y =="yes")] <- 1
 data_test$y <- as.numeric(data_test$y)
 ``` 
-#Modelos.
+
+
+## Modelos
 
 ```{r}
 m0 <- glm(y ~1, data = data_train, family = "binomial")
@@ -847,6 +849,7 @@ m1 <- glm(y ~ ., data = data_train, family = "binomial")
     
 m2 <- step_model <- step(m0, scope = list(lower = m0, upper = m1), direction = "forward")
 ```
+
 ```{r}
 step_prob <- predict(m2, type = "response")
     
@@ -854,7 +857,9 @@ ROC <- roc(data_train$y, step_prob)
 plot(ROC, col = "red")
 auc(ROC)
 ```
-#Variables significativas del modelo completo.
+
+
+## Variables significativas del modelo completo
 ```{r}
 sig.var<- summary(m1)$coeff[-1,4] <0.01
 names(sig.var)[sig.var == TRUE]
@@ -862,7 +867,8 @@ names(sig.var)[sig.var == TRUE]
 
 Por tanto, las variables significativas del modelo son ...
 
-#Predicciones y matriz de confusión del modelo completo.
+
+## Predicciones y matriz de confusión del modelo completo.
 
 ```{r}
 predicciones <- ifelse(test = m1$fitted.values > 0.5, yes = 1, no = 0)
@@ -882,7 +888,7 @@ result1<- table(data_test$y, floor(pred1+0.5))
 result1
 ```
 
-Realizamos la curva ROC para evaluar el AUC del modelo.
+### Realizamos la curva ROC para evaluar el AUC del modelo.
 
 ```{r}
 ROC <- roc(data_test$y, pred1)
@@ -893,7 +899,7 @@ auc(ROC)
 El AUC tiene un valor muy adecuado. Sin embargo, analizaremos un modelo más parsimonioso que el modelo completo. 
 
 
-#Modelo 3. Modelo con las variables significativas.
+## Modelo 3. Modelo con las variables significativas.
 ```{r}
 m3 <- glm(y ~ job+education+default+contact+month+duration+campaign+pdays+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data= data_train)
 summary(m3)
@@ -909,7 +915,7 @@ Por tanto, las variables significativas del modelo son ...
 AIC(m3)
 BIC(m3)
 ```
-#Predicciones y matriz de confusión.
+### Predicciones y matriz de confusión.
 
 ```{r}
 predicciones3 <- ifelse(test = m3$fitted.values > 0.5, yes = 1, no = 0)
@@ -929,7 +935,7 @@ result3<- table(data_test$y, floor(pred3+0.5))
 result3
 ```
 
-Realizamos la curva ROC para evaluar el AUC del modelo.
+### Realizamos la curva ROC para evaluar el AUC del modelo.
 
 ```{r}
 ROC3 <- roc(data_test$y, pred3)
