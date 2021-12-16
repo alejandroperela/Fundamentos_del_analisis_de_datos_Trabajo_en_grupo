@@ -37,6 +37,11 @@ El principal objetivo de este análisis es la predicción de si un cliente contr
 
 Para ello, vamos a analizar las diferentes variables para ver cómo es su distribución, la calidad de sus datos y cómo es la relación entre ellas.
 
+# Base de datos
+
+La base de datos está basada en los datos tomados en el estudio de [Moro et al., 2014] S. Moro, P. Cortez and P. Rita. A Data-Driven Approach to Predict the Success of Bank Telemarketing. Decision Support Systems, Elsevier, 62:22-31, June 2014.
+
+Contiene 41188 datos y 20 campos, ordenados por fecha desde mayo de 2008 a noviembre de 2010. Los datos vienen de un banco minoritario/personal de Portugal. 
 
 # Diccionario
 Diccionario con la definición de los diferentes campos que incluye el dataset
@@ -248,7 +253,7 @@ data_train$pdays_aux<-as.factor(data_train$pdays_aux)
 
 
 # Visualizacion de datos para EDA
-## Graficos para EDA con variables cualitativas individuales
+## Gráficos para EDA con variables cualitativas individuales
 
 **Trabajo**
 
@@ -462,7 +467,7 @@ ggplot(df1, aes(x = reorder(y, -records), y=records, fill=y, ymax=records*1.15)
 
 
 
-## Graficos para EDA con variables cuantitativas individuales
+## Gráficos para EDA con variables cuantitativas individuales
 
 **Edad**
 
@@ -693,9 +698,9 @@ A mayor número de emplados, menor es la cantidad de gente que contrata el produ
 
 A continuación, vamos a analizar por qué hay determinadas variables que son tan relevantes, sin que haya una lógica aparente detrás de ello, como el dispositivo de contacto o el mes de contacto. Y trataremos de averiguar si alguna variable no es relevante por sí sola, sino que depende de otras variables, y poder así reducir variables redundantes
 
-# Graficos para EDA multivariantes
+# Gráficos para EDA multivariantes
 
-## Graficos especifico para variables categoricas
+## Gráficos especifico para variables categoricas
 
 **Edad & trabajo**
 
@@ -808,20 +813,6 @@ ggplot(df1, aes(fill=poutcome, y=records, x=contact)) +
 ```
 
 Podemos ver que success y failure tienen mayor peso en los contactado por teléfono, los cuales tienen una mejor ratio de conversión
-
-
-
-# Relación entre variables numéricas.
-
-```{r cor_plot_numeric, fig.align='center', fig.show='hold', fig.width=12, fig.height=7}
-data_trainnum <- select_if(data_train, is.numeric)
-cor(data_trainnum)
-corPlot(data_trainnum, cex = 0.5, main = "Matriz de correlación", upper = FALSE)
-```
-Las variables edad, duración y campaña son las tres variables que muestran menor correlación con el resto, por lo que pueden ser variables poco relevantes para el modelo. 
-
-Relativo a la variable previous, observamos que es la única que muestra fundamentalmente correlaciones negativas, por lo que es relevante considerarla en el modelo futuro.
-
 
 
 # Modelos de regresión logística
