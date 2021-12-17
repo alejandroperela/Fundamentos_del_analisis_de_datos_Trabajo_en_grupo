@@ -1005,7 +1005,7 @@ coefplot(m1)  +
 ```
 
 ```{r comparacion}
-htmlreg(list(m0, m1, m3), caption="Comparación de modelos logit")
+ #htmlreg(list(m0, m1, m3), caption="Comparación de modelos logit")
 ```
 
 
