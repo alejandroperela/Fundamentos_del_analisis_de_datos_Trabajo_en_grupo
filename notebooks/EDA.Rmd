@@ -98,7 +98,7 @@ data$education[data$education=='unknown'] <- NA
 #data$loan[data$loan=='unknown'] <- NA
 ```
 
-## Division de datos
+## División de datos
 Separamos entre el train y test, dado que ya hemos hecho la limpieza de datos pertinente
 
 ```{r train_test, warning=FALSE, message=FALSE}
@@ -127,7 +127,7 @@ Comprobamos las diferentes variables, según el tipo y los primeros valores
 str(data_train)
 ```
 
-## Modificacion del tipo de variable y reordenacion de niveles 
+## Modificación del tipo de variable y reordenación de niveles 
 
 Modificamos las variables de tipo char a tipo factory reordenamos los niveles de las variables default, housing, loan, month y day_of_week
 ```{r modificacion del tipo de variable y reordenacion}
@@ -155,7 +155,7 @@ data_train$day_of_week=factor(data_train$day_of_week, levels = c('mon','thu','we
 
 Una vez que todas las columnas tienen el tipo de datos correcto, podemos continuar analizando los diferentes valores que toman las dimensiones cualitativas
 
-# Analisis exploratorio de datos faltantes
+# Análisis exploratorio de datos faltantes
 Una vez hecho esto, visualizamos el porcentaje de valores nulos que hay en nuestros datos, así como la combinación de valores nulos entre las diferentes dimensiones
 
 ```{r na_visualization, warning=FALSE, message=FALSE, fig.width=12, fig.height=5}
@@ -168,10 +168,13 @@ aggr_plot <- aggr(data_train[,2:7], col=c('navyblue','red'), numbers=TRUE, sortV
 # Imputación de valores perdidos
 
 ```{r impute data_train, warning=FALSE, message=FALSE}
-impdata_train <- mice(data_train, m=5, maxit = 50, method = 'pmm', seed = 1234)
+#imputación mucho más lenta que pmm (media)
+impdata_train <- mice(data_train, m=5, maxit = 50, method = 'cart', seed = 1234)
 summary(impdata_train)
 sum(is.na(impdata_train))
 ```
+En estimaciones de valores perdidos, dentro de las estimaciones univariantes, usaremos el método de árbol de decisiones, frente a otros métodos de regresión o la media y la moda.
+
 
 
 # Análisis exploratorio inicial
@@ -201,7 +204,7 @@ Las variables edad, duración y campaña son las tres variables que muestran men
 Relativo a la variable previous, observamos que es la única que muestra fundamentalmente correlaciones negativas, por lo que es relevante considerarla en el modelo futuro.
 
 
-# Transformacion de variables cuantitativas
+# Transformación de variables cuantitativas
 
 **Días desde el contacto previo**
 
@@ -829,18 +832,19 @@ Podemos ver que success y failure tienen mayor peso en los contactado por teléf
 
 # Modelos de regresión logística
 
-Debido a que la variable y (), es binaria, no se puede plantear la regresión lineal. Por tanto, se plantea un modelo de regresión logística.
+Debido a que la variable y (compra o no el producto tras la llamada), es binaria, no se puede plantear la regresión lineal. Por tanto, se plantea un modelo de regresión logística.
 
 Previo a la aplicación del modelo, convertimos los valores en 0 y 1, tanto del train como del test.
 
 ```{r}
-data_train$y[which(data_train$y =="no")] <- 0
-data_train$y[which(data_train$y =="yes")] <- 1
 data_train$y <- as.numeric(data_train$y)
-data_test$y[which(data_test$y =="no")] <- 0
-data_test$y[which(data_test$y =="yes")] <- 1
+data_train$y[which(data_train$y =="1")] <- 0
+data_train$y[which(data_train$y =="2")] <- 1
+
 data_test$y <- as.numeric(data_test$y)
-``` 
+data_test$y[which(data_test$y =="1")] <- 0
+data_test$y[which(data_test$y =="2")] <- 1
+```  
 
 
 ## Modelos
@@ -852,6 +856,8 @@ m1 <- glm(y ~ ., data = data_train, family = "binomial")
     
 m2 <- step_model <- step(m0, scope = list(lower = m0, upper = m1), direction = "forward")
 ```
+El modelo 0 corresponde al modelo sin variables y el modelo 1 incluye todas las variables.
+El modelo 2 recoge el método stepwise, forward selection, añadiendo cada vez más variables evaluando el AIC en cada paso. 
 
 ```{r}
 step_prob <- predict(m2, type = "response")
@@ -868,7 +874,7 @@ sig.var<- summary(m1)$coeff[-1,4] <0.01
 names(sig.var)[sig.var == TRUE]
 ```
 
-Por tanto, las variables significativas del modelo son ...
+Por tanto, las variables significativas del modelo son el trabajo (jubilado), educación (universidad), dispositivo de contacto (teléfono), mes de contacto (abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre y diciembre), día de la semana de contacto (martes, miércoles y jueves), duración, días desde el contacto previo, número de contactos durante esta campaña, ratio de variación del empleo, índice de precios al consumo, índice de confianza del consumidor y el número de empleados.
 
 
 ## Predicciones y matriz de confusión del modelo completo.
@@ -879,7 +885,22 @@ matriz_confusion <- table(m1$model$y, predicciones,
                           dnn = c("observaciones", "predicciones"))
 matriz_confusion
 ```
-Se observa una mejor ratio de TN que de TP. 
+```{r}
+TN <- matriz_confusion[1,1]
+FP <- matriz_confusion[1,2]
+FN <- matriz_confusion[2,1]
+TP <- matriz_confusion[2,2]
+```
+
+Se observa una mejor ratio de TN que de TP.
+
+*Medidas de clasificación*
+```{r}
+precision <- TP/(TP+FP)
+recall <- TP/(TP+FN)
+F1 <- 2*(precision*recall)/(precision+recall)
+accuracy <- (TP+TN)/(TP+TN+FP+FN)
+```
 
 ```{r}
 mosaic(matriz_confusion, shade = T, colorize = T,
@@ -926,7 +947,22 @@ matriz_confusion3 <- table(m3$model$y, predicciones,
                           dnn = c("observaciones", "predicciones"))
 matriz_confusion3
 ```
-Se observa una mejor ratio de TN que de TP. 
+```{r}
+TN1 <- matriz_confusion3[1,1]
+FP1 <- matriz_confusion3[1,2]
+FN1 <- matriz_confusion3[2,1]
+TP1 <- matriz_confusion3[2,2]
+```
+
+Se observa una mejor ratio de TN que de TP.
+
+*Medidas de clasificación*
+```{r}
+precision1 <- TP1/(TP1+FP1)
+recall1 <- TP1/(TP1+FN1)
+F11 <- 2*(precision1*recall1)/(precision1+recall1)
+accuracy11 <- (TP1+TN1)/(TP1+TN1+FP1+FN1)
+```
 
 ```{r}
 mosaic(matriz_confusion3, shade = T, colorize = T,
