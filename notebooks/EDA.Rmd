@@ -8,7 +8,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, results = "hide")
 set.seed(1234)
 ```
 
@@ -29,6 +29,7 @@ library(vcd)
 library(pROC)
 library(texreg)
 library(mice)
+library(coefplot)
 ```
 
 
@@ -112,7 +113,7 @@ write.csv(data_train, file='../data/data_train.csv', row.names=TRUE)
 write.csv(data_test, file='../data/data_test.csv', row.names=TRUE)
 ```
 
-# -------------------------------------------------------------------------------
+
 
 # Lectura de datos train
 
@@ -867,8 +868,8 @@ plot(ROC, col = "red")
 auc(ROC)
 ```
 
-
-## Variables significativas del modelo completo
+## Modelo 1. Modelo completo
+### Variables significativas del modelo completo
 ```{r}
 sig.var<- summary(m1)$coeff[-1,4] <0.01
 names(sig.var)[sig.var == TRUE]
@@ -877,7 +878,7 @@ names(sig.var)[sig.var == TRUE]
 Por tanto, las variables significativas del modelo son el trabajo (jubilado), educación (universidad), dispositivo de contacto (teléfono), mes de contacto (abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre y diciembre), día de la semana de contacto (martes, miércoles y jueves), duración, días desde el contacto previo, número de contactos durante esta campaña, ratio de variación del empleo, índice de precios al consumo, índice de confianza del consumidor y el número de empleados.
 
 
-## Predicciones y matriz de confusión del modelo completo.
+### Predicciones y matriz de confusión del modelo completo.
 
 ```{r}
 predicciones <- ifelse(test = m1$fitted.values > 0.5, yes = 1, no = 0)
@@ -921,6 +922,7 @@ auc(ROC)
 ```
 
 El AUC tiene un valor muy adecuado. Sin embargo, analizaremos un modelo más parsimonioso que el modelo completo. 
+
 
 
 ## Modelo 3. Modelo con las variables significativas.
@@ -983,11 +985,12 @@ auc(ROC3)
 ```
 
 El AUC tiene un valor muy adecuado, muy semejante al modelo completo. 
+
 ```{r}
 anova(m1)
 ```
+
 ```{r coef_plot, fig.align='center', fig.show='hold', fig.width=12, fig.height=7}
-library(coefplot)
 coefplot(m1)  + 
   theme_minimal() + 
   labs(title="Estimación de coeficientes con error estandar", 
@@ -996,13 +999,14 @@ coefplot(m1)  +
        caption="Elaboración propia")
 ```
 
-```{r}
-library(texreg)
+```{r comparacion}
 htmlreg(list(m0, m1, m3), caption="Comparación de modelos logit")
 ```
 
+
+*Medidas de ajuste del modelo 1 (completo) y modelo 3(variables significativas)*
+
 ```{r}
-#Medidas de ajuste del modelo 1 (completo) y modelo 3(variables significativas)
 #m1
 dev <- m1$deviance
 nullDev <- m1$null.deviance
