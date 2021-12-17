@@ -902,6 +902,8 @@ precision <- TP/(TP+FP)
 recall <- TP/(TP+FN)
 F1 <- 2*(precision*recall)/(precision+recall)
 accuracy <- (TP+TN)/(TP+TN+FP+FN)
+tabla1 <- matrix(data = c(precision,recall,F1,accuracy), ncol=1, nrow=4)
+rownames(tabla1) <- c("Precision","Recall","F1","Accuracy")
 ```
 
 ```{r}
@@ -965,6 +967,8 @@ precision1 <- TP1/(TP1+FP1)
 recall1 <- TP1/(TP1+FN1)
 F11 <- 2*(precision1*recall1)/(precision1+recall1)
 accuracy11 <- (TP1+TN1)/(TP1+TN1+FP1+FN1)
+tabla2 <- matrix(data = c(precision1,recall1,F11,accuracy1), ncol=1, nrow=4)
+rownames(tabla2) <- c("Precision","Recall","F1","Accuracy")
 ```
 
 ```{r}
