@@ -1002,6 +1002,7 @@ htmlreg(list(m0, m1, m3), caption="Comparación de modelos logit")
 ```
 
 ```{r}
+#Medidas de ajuste del modelo 1 (completo) y modelo 3(variables significativas)
 #m1
 dev <- m1$deviance
 nullDev <- m1$null.deviance
