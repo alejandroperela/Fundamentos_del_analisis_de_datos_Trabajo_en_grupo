@@ -948,7 +948,7 @@ BIC(m3)
 
 ```{r}
 predicciones3 <- ifelse(test = m3$fitted.values > 0.5, yes = 1, no = 0)
-matriz_confusion3 <- table(m3$model$y, predicciones,
+matriz_confusion3 <- table(m3$model$y, predicciones3,
                           dnn = c("observaciones", "predicciones"))
 matriz_confusion3
 ```
