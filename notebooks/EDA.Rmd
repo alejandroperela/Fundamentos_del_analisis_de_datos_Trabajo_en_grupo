@@ -841,12 +841,13 @@ Previo a la aplicación del modelo, convertimos los valores en 0 y 1, tanto del 
 data_train$y <- as.numeric(data_train$y)
 data_train$y[which(data_train$y =="1")] <- 0
 data_train$y[which(data_train$y =="2")] <- 1
+``` 
 
+```{r}
+data_test$y[which(data_test$y =="no")] <- 0
+data_test$y[which(data_test$y =="yes")] <- 1
 data_test$y <- as.numeric(data_test$y)
-data_test$y[which(data_test$y =="1")] <- 0
-data_test$y[which(data_test$y =="2")] <- 1
-```  
-
+```
 
 ## Modelos
 
