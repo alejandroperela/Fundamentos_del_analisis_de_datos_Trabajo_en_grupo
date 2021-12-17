@@ -30,6 +30,7 @@ library(pROC)
 library(texreg)
 library(mice)
 library(coefplot)
+library(car)
 ```
 
 
@@ -870,11 +871,17 @@ auc(ROC)
 ```
 
 ## Modelo 1. Modelo completo
+```{r}
+vif(m1)
+dwt(m1, alternative = "two.sided")
+```
+Hay presencia de autocorrelación.
 ### Variables significativas del modelo completo
 ```{r}
 sig.var<- summary(m1)$coeff[-1,4] <0.01
 names(sig.var)[sig.var == TRUE]
 ```
+
 
 Por tanto, las variables significativas del modelo son el trabajo (jubilado), educación (universidad), dispositivo de contacto (teléfono), mes de contacto (abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre y diciembre), día de la semana de contacto (martes, miércoles y jueves), duración, días desde el contacto previo, número de contactos durante esta campaña, ratio de variación del empleo, índice de precios al consumo, índice de confianza del consumidor y el número de empleados.
 
@@ -933,6 +940,12 @@ El AUC tiene un valor muy adecuado. Sin embargo, analizaremos un modelo más par
 m3 <- glm(y ~ job+education+default+contact+month+duration+campaign+pdays+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data= data_train)
 summary(m3)
 ```
+```{r}
+vif(m3)
+dwt(m3, alternative = "two.sided")
+```
+Hay presencia de autocorrelación.
+
 ```{r}
 sig.var<- summary(m3)$coeff[-1,4] <0.01
 names(sig.var)[sig.var == TRUE]
