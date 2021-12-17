@@ -1033,3 +1033,13 @@ chisq.prob1
 R2.hl1 <- modelChi1/m3$null.deviance
 R2.hl1
 ```
+#Tabla recopilación de modelos
+```{r}
+AIC1 <- c(AIC(m1), AIC(m3))
+BIC1 <- c(BIC(m1), BIC(m3))
+R21 <- c(R2.hl, R2.hl1)
+tabla2 <- matrix(data = c(AIC1,BIC1,R21), ncol=3, nrow=2)
+colnames(tabla2) <- c("AIC","BIC","R2")
+rownames(tabla2) <- c("Modelo 1: completo", "Modelo 3: variables sign.")
+tabla2
+```
