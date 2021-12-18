@@ -997,7 +997,7 @@ result3<- table(data_test$y, floor(pred3+0.5))
 result3
 ```
 
-### Realizamos la curva ROC para evaluar el AUC del modelo.
+Realizamos la curva ROC para evaluar el AUC del modelo.
 
 ```{r}
 ROC3 <- roc(data_test$y, pred3)
