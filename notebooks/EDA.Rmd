@@ -4,9 +4,13 @@ author: "Andrea Condado, Alejandro Perela y Miguel Calvo"
 date: "20/11/2021"
 output:
   html_document:
+    code_folding: hide
+    fig_caption: yes
+    latex_engine: xelatex
     number_sections: yes
     toc: TRUE
-    df_print: paged
+    toc_float: TRUE 
+    smooth_scroll: TRUE
     
 ---
 
