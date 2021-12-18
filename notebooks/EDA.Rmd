@@ -4,7 +4,10 @@ author: "Andrea Condado, Alejandro Perela y Miguel Calvo"
 date: "20/11/2021"
 output:
   html_document:
+    number_sections: yes
+    toc: TRUE
     df_print: paged
+    
 ---
 
 ```{r setup, include=FALSE}
