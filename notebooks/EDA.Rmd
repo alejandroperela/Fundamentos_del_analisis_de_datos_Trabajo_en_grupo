@@ -845,6 +845,14 @@ Debido a que la variable y (compra o no el producto tras la llamada), es binaria
 
 Previo a la aplicación del modelo, convertimos los valores en 0 y 1, tanto del train como del test.
 
+```{r test_pdays_aux}
+df1 = data_test %>% group_by(y, pdays) %>% summarise(records = n(), .groups = 'drop')
+ggplot(df1, aes(fill=y, y=records, x=factor(pdays))) + 
+    geom_bar(position="fill", stat="identity")
+
+data_test = data_test %>% mutate(pdays_aux = ifelse(pdays == 999,0,1))
+```
+
 ```{r}
 data_train$y <- as.numeric(data_train$y)
 data_train$y[which(data_train$y =="1")] <- 0
@@ -864,7 +872,10 @@ m0 <- glm(y ~1, data = data_train, family = "binomial")
     
 m1 <- glm(y ~ ., data = data_train, family = "binomial")
     
-m2 <- step_model <- step(m0, scope = list(lower = m0, upper = m1), direction = "forward")
+#m2 <- step_model <- step(m0, scope = list(lower = m0, upper = m1), direction = "forward")
+
+m3 <- glm(y ~age, data = data_train, family = "binomial")
+m4 <- glm(y ~emp.var.rate, data = data_train, family = "binomial")
 ```
 El modelo 0 corresponde al modelo sin variables y el modelo 1 incluye todas las variables.
 El modelo 2 recoge el método stepwise, forward selection, añadiendo cada vez más variables evaluando el AIC en cada paso. 
@@ -890,7 +901,7 @@ names(sig.var)[sig.var == TRUE]
 ```
 
 
-Por tanto, las variables significativas del modelo son el trabajo (jubilado), educación (universidad), dispositivo de contacto (teléfono), mes de contacto (abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre y diciembre), día de la semana de contacto (martes, miércoles y jueves), duración, días desde el contacto previo, número de contactos durante esta campaña, ratio de variación del empleo, índice de precios al consumo, índice de confianza del consumidor y el número de empleados.
+Por tanto, las variables significativas del modelo son el trabajo (jubilado), educación (universidad), dispositivo de contacto (teléfono), mes de contacto (abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre y diciembre), día de la semana de contacto (martes, miércoles y jueves), duración, días desde el contacto previo, número de contactos durante esta campaña, ratio de variación del empleo, índice de precios al consumo, índice de confianza del consumidor y el número de empleados. La duración de la llamada no se considera relevante, ya que se obtiene después de haber realizado la transacción.
 
 
 ### Predicciones y matriz de confusión del modelo completo.
@@ -930,7 +941,7 @@ result1<- table(data_test$y, floor(pred1+0.5))
 result1
 ```
 
-### Realizamos la curva ROC para evaluar el AUC del modelo.
+Realizamos la curva ROC para evaluar el AUC del modelo.
 
 ```{r}
 ROC <- roc(data_test$y, pred1)
@@ -944,39 +955,39 @@ El AUC tiene un valor muy adecuado. Sin embargo, analizaremos un modelo más par
 
 ## Modelo 3. Modelo con las variables significativas.
 ```{r}
-m3 <- glm(y ~ job+education+default+contact+month+duration+campaign+pdays+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data= data_train)
-summary(m3)
+m5 <- glm(y ~ job+education+default+contact+month+campaign+pdays+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data= data_train)
+summary(m5)
 ```
 ```{r}
-vif(m3)
-dwt(m3, alternative = "two.sided")
+vif(m5)
+dwt(m5, alternative = "two.sided")
 ```
 Hay presencia de autocorrelación.
 
 ```{r}
-sig.var<- summary(m3)$coeff[-1,4] <0.01
+sig.var<- summary(m5)$coeff[-1,4] <0.01
 names(sig.var)[sig.var == TRUE]
 ```
 
 Por tanto, las variables significativas del modelo son ...
 
 ```{r}
-AIC(m3)
-BIC(m3)
+AIC(m5)
+BIC(m5)
 ```
 ### Predicciones y matriz de confusión.
 
 ```{r}
-predicciones3 <- ifelse(test = m3$fitted.values > 0.5, yes = 1, no = 0)
-matriz_confusion3 <- table(m3$model$y, predicciones3,
+predicciones5 <- ifelse(test = m5$fitted.values > 0.5, yes = 1, no = 0)
+matriz_confusion5 <- table(m5$model$y, predicciones3,
                           dnn = c("observaciones", "predicciones"))
-matriz_confusion3
+matriz_confusion5
 ```
 ```{r}
-TN1 <- matriz_confusion3[1,1]
-FP1 <- matriz_confusion3[1,2]
-FN1 <- matriz_confusion3[2,1]
-TP1 <- matriz_confusion3[2,2]
+TN1 <- matriz_confusion5[1,1]
+FP1 <- matriz_confusion5[1,2]
+FN1 <- matriz_confusion5[2,1]
+TP1 <- matriz_confusion5[2,2]
 ```
 
 Se observa una mejor ratio de TN que de TP.
@@ -987,8 +998,9 @@ precision1 <- TP1/(TP1+FP1)
 recall1 <- TP1/(TP1+FN1)
 F11 <- 2*(precision1*recall1)/(precision1+recall1)
 accuracy11 <- (TP1+TN1)/(TP1+TN1+FP1+FN1)
-tabla2 <- matrix(data = c(precision1,recall1,F11,accuracy1), ncol=1, nrow=4)
+tabla2 <- matrix(data = c(precision1,recall1,F11,accuracy11), ncol=1, nrow=4)
 rownames(tabla2) <- c("Precision","Recall","F1","Accuracy")
+tabla2
 ```
 
 ```{r}
@@ -996,23 +1008,23 @@ mosaic(matriz_confusion3, shade = T, colorize = T,
        gp = gpar(fill = matrix(c("green3", "red2", "red2", "green3"), 2, 2)))
 ``` 
 ```{r}
-pred3<- predict.glm(m3,newdata = data_test, type="response")
-result3<- table(data_test$y, floor(pred3+0.5))
-result3
+pred5<- predict.glm(m5,newdata = data_test, type="response")
+result5<- table(data_test$y, floor(pred3+0.5))
+result5
 ```
 
 Realizamos la curva ROC para evaluar el AUC del modelo.
 
 ```{r}
-ROC3 <- roc(data_test$y, pred3)
-plot(ROC3, col = "red")
-auc(ROC3)
+ROC5 <- roc(data_test$y, pred5)
+plot(ROC5, col = "red")
+auc(ROC5)
 ```
 
-El AUC tiene un valor muy adecuado, muy semejante al modelo completo. 
+El AUC tiene un valor muy adecuado, aunque menor que el modelo completo. Al hacer el modelo incluyendo la duración de la llamada, se obtienen sobreestimaciones del AUC y una infraestimación del AIC, indicando mejor ajuste del esperado.
 
 ```{r}
-anova(m1)
+anova(m1,m3,m4,m5)
 ```
 
 ```{r coef_plot, fig.align='center', fig.show='hold', fig.width=12, fig.height=7}
@@ -1052,14 +1064,34 @@ chisq.prob1 <- 1 - pchisq(modelChi1, chigl1)
 chisq.prob1
 R2.hl1 <- modelChi1/m3$null.deviance
 R2.hl1
+#m3
+dev11 <- m4$deviance
+nullDev11<- m4$null.deviance
+modelChi11 <- nullDev11 - dev11
+modelChi11
+chigl11 <- m4$df.null - m4$df.residual
+chisq.prob11 <- 1 - pchisq(modelChi11, chigl11)
+chisq.prob11
+R2.hl11 <- modelChi11/m4$null.deviance
+R2.hl11
+#m4
+dev12 <- m5$deviance
+nullDev12<- m5$null.deviance
+modelChi12 <- nullDev12 - dev12
+modelChi12
+chigl12 <- m5$df.null - m5$df.residual
+chisq.prob12 <- 1 - pchisq(modelChi12, chigl12)
+chisq.prob12
+R2.hl12 <- modelChi12/m5$null.deviance
+R2.hl12
 ```
 #Tabla recopilación de modelos
 ```{r}
-AIC1 <- c(AIC(m1), AIC(m3))
-BIC1 <- c(BIC(m1), BIC(m3))
-R21 <- c(R2.hl, R2.hl1)
-tabla2 <- matrix(data = c(AIC1,BIC1,R21), ncol=3, nrow=2)
+AIC1 <- c(AIC(m1), AIC(m3), AIC(m4), AIC(m5))
+BIC1 <- c(BIC(m1), BIC(m3), BIC(m4), BIC(m5))
+R21 <- c(R2.hl, R2.hl1, R2.hl11, R2.hl12)
+tabla2 <- matrix(data = c(AIC1,BIC1,R21), ncol=3, nrow=4)
 colnames(tabla2) <- c("AIC","BIC","R2")
-rownames(tabla2) <- c("Modelo 1: completo", "Modelo 3: variables sign.")
+rownames(tabla2) <- c("Modelo 1: completo", "Modelo 3: edad", "Modelo 4: tasa de empleo", "Modelo 5: variables sign.")
 tabla2
 ```
