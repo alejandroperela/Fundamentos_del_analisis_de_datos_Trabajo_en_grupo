@@ -189,7 +189,7 @@ En estimaciones de valores perdidos, dentro de las estimaciones univariantes, us
 # Análisis exploratorio inicial
 
 El primer paso siempre debe consistir en efectuar un análisis exploratorio de los datos, para empezar a detectar posibles problemas.
-```{r }
+```{r eda_inicial, warning=FALSE, message=FALSE, fig.width=12, fig.height=8}
 
 data_train %>% select(age,duration,campaign,pdays,previous,emp.var.rate,cons.conf.idx, cons.price.idx,euribor3m,nr.employed,y) %>%
   na.omit() %>%
@@ -847,9 +847,6 @@ Previo a la aplicación del modelo, convertimos los valores en 0 y 1, tanto del 
 
 ```{r test_pdays_aux}
 df1 = data_test %>% group_by(y, pdays) %>% summarise(records = n(), .groups = 'drop')
-ggplot(df1, aes(fill=y, y=records, x=factor(pdays))) + 
-    geom_bar(position="fill", stat="identity")
-
 data_test = data_test %>% mutate(pdays_aux = ifelse(pdays == 999,0,1))
 ```
 
@@ -864,21 +861,39 @@ data_test$y[which(data_test$y =="no")] <- 0
 data_test$y[which(data_test$y =="yes")] <- 1
 data_test$y <- as.numeric(data_test$y)
 ```
+**Supuestos de partida para regresión**
 
-## Modelos
+```{r}
+data_trainnum
+```
+*1. Normalidad*
+```{r}
+#mvn(data=data_trainnum$age, univariatePlot = "qqplot")
+```
+*2. Linealidad*
+
+*3. Independencia*
+
+*4. Homocedasticidad*
+```{r}
+car::ncvTest(data_trainnum)
+```
+
+**Modelos**
 
 ```{r}
 m0 <- glm(y ~1, data = data_train, family = "binomial")
     
 m1 <- glm(y ~ ., data = data_train, family = "binomial")
     
-#m2 <- step_model <- step(m0, scope = list(lower = m0, upper = m1), direction = "forward")
+m2 <- step_model <- step(m0, scope = list(lower = m0, upper = m1), direction = "forward")
 
 m3 <- glm(y ~age, data = data_train, family = "binomial")
 m4 <- glm(y ~emp.var.rate, data = data_train, family = "binomial")
 ```
 El modelo 0 corresponde al modelo sin variables y el modelo 1 incluye todas las variables.
 El modelo 2 recoge el método stepwise, forward selection, añadiendo cada vez más variables evaluando el AIC en cada paso. 
+Los modelos 3 y 4 son modelos con la variable que menos correlaciona (edad) y la que mas correlaciona (tasa de variación de empleo)
 
 ```{r}
 step_prob <- predict(m2, type = "response")
