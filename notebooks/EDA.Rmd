@@ -15,7 +15,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, results = "hide")
+knitr::opts_chunk$set(echo = TRUE)
 set.seed(1234)
 ```
 
@@ -295,6 +295,13 @@ ggplot(df3, aes(x = reorder(job, -records), y=records, fill=y, ymax=records*1.15
 
 Parece que los trabajos que mejor ratio de conversión tienen son los de jubilado, desempleado y estudiante, por lo que job podría ser un buen predictor. Ninguna parece estar relacionada con una forma activa de empleo, lo cual podría indicar la naturaleza del producto financiero ofrecido
 
+Graficamente se observan diferencias significativas entre los  grupos, para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
+```{r}
+tabla<-table(y,job)
+chisq.test(tabla)
+```
+Rechazamos la hipótesis nula, luego consideraremos que no hay independencias entre ambas variables, es decir, el trabajo sí está asociado a y
+
 
 **Estado civil**
 
@@ -311,6 +318,12 @@ ggplot(df3, aes(x = reorder(marital, -records), y=records, fill=y, ymax=records*
 ```
 
 No hay grandes diferencias en la contratación cuando clasificamos a la gente por su estado civil
+para comprobar si es cierto que no hay diferencias significativas vamos a hacer un test chi-cuadrado
+```{r}
+tabla<-table(y,marital)
+chisq.test(tabla)
+```
+Rechazamos la hipótesis nula, luego consideraremos que no hay independencias entre ambas variables, es decir, el estado civil sí está asociado a y
 
 
 **Educación**
@@ -330,6 +343,13 @@ ggplot(df3, aes(x = reorder(education, -records), y=records, fill=y, ymax=record
 La educación parece que juega también un papel importante en la predicción del éxito de la campaña, siendo university.degree y professional.course las educaciones con mejor ratio de conversión. 
 Por lo que también podría ser un buen predictor
 
+para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
+```{r}
+tabla<-table(y,education)
+fisher.test(tabla, simulate.p.value = TRUE, B = 5000)
+```
+Rechazamos la hipótesis nula, luego consideraremos que no hay independencias entre ambas variables, es decir, la educacion sí está asociado a y
+
 
 **Impago**
 
@@ -346,6 +366,14 @@ ggplot(df3, aes(x = reorder(default, -records), y=records, fill=y, ymax=records*
 ```
 
 El impago sí que parece un predictor relevante, dado que la gente que no tiene default tiene un ratio de conversión mejor. El valor de unknown podría justificarse con que la gente no quiere decir que hay tenido impagos, y estos impagos podrían implicar una menor capacidad económica y, por tanto, una menor porbabilidad de contratar un producto financiero
+
+para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
+```{r}
+tabla<-table(y,default)
+#Con chi-cuadrado daba problemas por lo que uso fisher
+fisher.test(tabla)
+```
+No podemos rechazar la hipotesis nula, por tanto las variables si son independientes
 
 
 **Hipoteca**
@@ -364,6 +392,14 @@ ggplot(df3, aes(x = reorder(housing, -records), y=records, fill=y, ymax=records*
 
 No se aprecian diferencias en si el contactado tiene una hipoteca o no
 
+para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
+```{r}
+tabla<-table(y,housing)
+chisq.test(tabla)
+chisq.test(tabla, simulate.p.value = TRUE, B = 5000)
+```
+Rechazamos H0, housing asociado a y
+
 
 **Préstamo**
 
@@ -381,6 +417,13 @@ ggplot(df3, aes(x = reorder(loan, -records), y=records, fill=y, ymax=records*1.1
 
 Tampoco parece haber diferencias teniendo en cuenta si la persona tenía un préstamo o no
 
+para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
+```{r}
+tabla<-table(y,loan)
+chisq.test(tabla)
+```
+NO rechazamos H0, loan NO asociado a y
+
 
 **Dispositivo de contacto**
 
@@ -397,6 +440,13 @@ ggplot(df3, aes(x = reorder(contact, -records), y=records, fill=y, ymax=records*
 ```
 
 Parece que la forma de contactar con cada persona podría ser un buen predictor, teniendo el teléfono una ratio de conversión 3 veces superior al teléfono fijo
+
+para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
+```{r}
+tabla<-table(y,contact)
+chisq.test(tabla)
+```
+Rechazamos H0, contact asociado a y
 
 
 **Mes de contacto**
@@ -418,6 +468,13 @@ ggplot(df3, aes(x = reorder(month, -records), y=records, fill=y, ymax=records*1.
 
 El mes también parece un muy buen predictor, habiendo meses como marzo, septiembre, octubre o diciembre, con una ratio de conversión muy alta. Cabe destacar también que son los meses con un menor número de llamadas
 
+para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
+```{r}
+tabla<-table(y,month)
+chisq.test(tabla)
+```
+Rechazamos H0, month asociado a y
+
 
 **Día de la semana de contacto**
 
@@ -438,6 +495,13 @@ ggplot(df3, aes(x = reorder(day_of_week, -records), y=records, fill=y, ymax=reco
 
 No parece haber ninguna influencia en el resultado de la camapaña por parte del día de la semana de contacto
 
+para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
+```{r}
+tabla<-table(y,day_of_week)
+chisq.test(tabla)
+```
+Rechazamos H0, day of week asociado a y
+
 
 **Días desde el contacto previo**
 
@@ -453,10 +517,16 @@ ggplot(df3, aes(x=reorder(pdays_aux,-records),y=records, fill=y, ymax=records*1.
   ggtitle("Distribucion por días desde el contacto previo")
   scale_x_discrete(limits = positions) 
   
-
 ```
 
 Observamos que el ratio de conversión más alto es el que corresponde a la gente que nunca fue contactada en la campaña anterior, por lo que Dias desde el contacto previo puede ser un buen predictor
+
+ para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
+```{r}
+tabla<-table(y,pdays_aux)
+chisq.test(tabla)
+```
+Rechazamos H0, pdays_aux asociado a y
 
 
 **Resultado de la campaña previa**
@@ -474,6 +544,13 @@ ggplot(df3, aes(x = reorder(poutcome, -records), y=records, fill=y, ymax=records
 ```
 
 El resultado de la campaña previa también es un buen predictor
+
+para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
+```{r}
+tabla<-table(y,poutcome)
+chisq.test(tabla)
+```
+Rechazamos H0, poutcome asociado a y
 
 
 **Resultado de esta campaña**
@@ -519,6 +596,12 @@ ggplot(data_train, aes(x=age, y=y)) +
 
 Como podemos observar en la gráfica de densidad, parece que las personas que terminan contratando son ligeramente más mayores que las que no. Y de hecho, como podemos ver en el gráfico de cajas, las edades son de media más bajas y están menos dispersas para las personas que no contratan.
 
+El llamado test de Student ayuda a determinar si la diferencia observada es o no estadísticamente significativa
+```{r test de Student age}
+t.test(age~y)
+```
+se consideraría que sí existe diferencia significativa entre los grupos, por tanto, la edad sí esta asociado a y
+
 
 **Duración de la llamada**
 
@@ -535,6 +618,12 @@ ggplot(data_train, aes(x=duration, y=y)) +
 ```
 
 En este caso, únicamente confirmamos lo que ya sospechábamos, y es que cuanto mayor es la duración de la llamada, mayor es la proporción de personas que termina contratando. La dispersión también es mayor en el caso de la gente que contrata
+
+El llamado test de Student ayuda a determinar si la diferencia observada es o no estadísticamente significativa.
+```{r test de Student duration}
+t.test(duration~y)
+```
+p-value<0.05 --> se consideraría que sí existe diferencia significativa entre los grupos, por tanto, la duracion de la ultima llamada sí esta asociado a y
 
 
 **Número de contactos durante esta campaña**
@@ -563,6 +652,12 @@ ggplot(data_train, aes(x=campaign, y=y)) +
 
 Podemos ver que conforme aumentan el número de contactos, la ratio de conversión decrece, lo cual podría indicar que es un buen indicador
 
+El llamado test de Student ayuda a determinar si la diferencia observada es o no estadísticamente significativa.
+```{r}
+t.test(campaign~y)
+```
+p-value<0.05 -> se consideraría que sí existe diferencia significativa entre los grupos, por tanto, sí esta asociado a y
+
 
 **Número de veces contactado antes de esta campaña**
 
@@ -590,6 +685,12 @@ ggplot(data_train, aes(x=previous, y=y)) +
 
 Parece que la distribución es más o menos similar para ambos grupos de personas, de acuerdo a la función de densidad. Aunque viendo el gráfico de barras apiladas y el gráfico de cajas, parece que hay una mayor concentración de personas que nunca han sido contactadas previamente entre la gente que nunca contrató
 
+El llamado test de Student ayuda a determinar si la diferencia observada es o no estadísticamente significativa.
+```{r}
+t.test(previous~y)
+```
+p-value<0.05 -> se consideraría que sí existe diferencia significativa entre los grupos, por tanto, sí esta asociado a y
+
 
 **Ratio de variación del empleo**
 
@@ -616,6 +717,12 @@ ggplot(data_train, aes(x=emp.var.rate, y=y)) +
 ```
 
 Parece que cuanto más aumenta el empleo, mayor es la proporción de personas que no termina contratando, lo cual podemos confirmar con el gráfico de cajas. Cuanto más positiva es la variación en el empleo, menos gente contrata, lo cual podría estar relacionado con que la gente tenga menos necesidad de contratar cuando las condiciones macro son mejores
+
+El llamado test de Student ayuda a determinar si la diferencia observada es o no estadísticamente significativa.
+```{r}
+t.test(emp.var.rate~y)
+```
+p-value<0.05 -> se consideraría que sí existe diferencia significativa entre los grupos, por tanto, sí esta asociado a y
 
 
 **Índice de precios al consumo**
@@ -646,6 +753,13 @@ Si miramos la gráfica de densidad, parece que cuando hay un mayor número de re
 
 El gráfico de cajas parece indicar algo parecido, dado que la media del índice es ligeramente superior entre los usuarios que no terminaron contratando, aunque esta diferencia no parece muy relevante.
 
+para comprobar si es cierto que hay diferencias significativas vamos a hacer un test de Student
+El llamado test de Student ayuda a determinar si la diferencia observada es o no estadísticamente significativa.
+```{r}
+t.test(cons.price.idx~y)
+```
+p-value<0.05 -> se consideraría que sí existe diferencia significativa entre los grupos, por tanto, sí esta asociado a y
+
 
 **Índice de confianza del consumidor**
 
@@ -671,8 +785,13 @@ ggplot(data_train, aes(x=cons.conf.idx, y=y)) +
   geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
 ```
 
-**Este todavía no entiendo muy bien la relación, porque parece que no hay ninguna lógica detrás**
 La variable Índice de confianza del consumidor tiene un comportamiento similar a la variable Índice de precios al consumo puesto que cuando el índice está en mínimos la ratio es superior.
+
+El llamado test de Student ayuda a determinar si la diferencia observada es o no estadísticamente significativa.
+```{r}
+t.test(cons.conf.idx~y)
+```
+p-value<0.05 -> se consideraría que sí existe diferencia significativa entre los grupos, por tanto, sí esta asociado a y
 
 
 **Euribor a 3 meses**
@@ -690,6 +809,12 @@ ggplot(data_train, aes(x=euribor3m, y=y)) +
 ```
 
 Cuanto mayor es el euribor, menor cantidad de gente contrata, y viceversa; cuanto menor es, más gente contrata. Esto podría deberse a que un menor euribor implica menores intereses en el producto contratado. El gráfico de cajas nos arroja unos resultados similares
+
+El llamado test de Student ayuda a determinar si la diferencia observada es o no estadísticamente significativa.
+```{r}
+t.test(euribor3m~y)
+```
+p-value<0.05 -> se consideraría que sí existe diferencia significativa entre los grupos, por tanto, sí esta asociado a y
 
 
 **Número de empleados**
@@ -718,11 +843,17 @@ ggplot(data_train, aes(x=nr.employed, y=y)) +
 
 A mayor número de emplados, menor es la cantidad de gente que contrata el producto, y viceversa. Esto puede deberse a que conforme mejores son las condiciones macroeconómicas, menor necesidad tiene la gente de contratar este tipo de productos
 
+El llamado test de Student ayuda a determinar si la diferencia observada es o no estadísticamente significativa.
+```{r}
+t.test(nr.employed~y)
+```
+p-value<0.05 -> se consideraría que sí existe diferencia significativa entre los grupos, por tanto, sí esta asociado a y
 
 
-A continuación, vamos a analizar por qué hay determinadas variables que son tan relevantes, sin que haya una lógica aparente detrás de ello, como el dispositivo de contacto o el mes de contacto. Y trataremos de averiguar si alguna variable no es relevante por sí sola, sino que depende de otras variables, y poder así reducir variables redundantes
 
 # Gráficos para EDA multivariantes
+
+A continuación, vamos a analizar por qué hay determinadas variables que son tan relevantes sin que haya una lógica aparente detrás de ello, como por ejemplo el dispositivo de contacto o el mes de contacto. Y trataremos de averiguar si alguna variable no es relevante por sí sola, sino que depende de otras variables, y poder así reducir variables redundantes
 
 ## Gráficos especifico para variables categoricas
 
