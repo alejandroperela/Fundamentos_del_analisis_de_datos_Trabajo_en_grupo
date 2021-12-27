@@ -100,7 +100,8 @@ head(data)
 
 **Detección de valores NA**
 
-Una vez conocemos los diferentes valores que toman las dimensiones de nuestro dataset, sustituimos los valores unkown por NA, para poder trabajar con datos faltantes
+
+Una vez conocemos los diferentes valores que toman las dimensiones de nuestro dataset, sustituimos los valores unkown por NA, para poder trabajar con datos faltantes. Los datos faltantes en este caso parecen ser MNAR (missing not at random), ya que son variables que la persona conoce, pero ha decidido no contestar. También podrían ser MAR (missing at random)
 
 ```{r na_dimension, warning=FALSE, message=FALSE}
 data$job[data$job=='unknown'] <- NA
@@ -177,7 +178,7 @@ aggr_plot <- aggr(data_train[,2:7], col=c('navyblue','red'), numbers=TRUE, sortV
                   labels=names(data_train[,2:7]), cex.axis=.7, gap=3, 
                   ylab=c("Histograma de datos faltantes","Patrones"))
 ```
-
+Las tres variables con NA son las variables educación (en torno al 4 %) y las variables trabajo y marital, ambas por debajo de 0.01 %. Con este porcentaje de NA, se podría plantear la no imputación de estos.
 
 # Imputación de valores perdidos
 
@@ -999,7 +1000,6 @@ data_test$y[which(data_test$y =="no")] <- 0
 data_test$y[which(data_test$y =="yes")] <- 1
 data_test$y <- as.numeric(data_test$y)
 ```
-
 #Técnicas automáticas de selección de variables
 
 **Forward Stepwise**
@@ -1016,24 +1016,30 @@ for (metric in c("r2", "adjr2", "Cp", "bic")){plot(regfit_bwd, scale=metric)}
 ```
 Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método backward serían mes (abril, mayo, junio y octubre), duración de la llamada, poutcome, emp.var.rate y cons.price.idx.
 
-Ambos métodos sugieren como variables relevantes comunes el mes, la duración de la llamada y el poutcome.
+Ambos métodos sugieren como variables relevantes comunes el mes, la duración de la llamada y el resultado de la campaña previa.
 
 **Modelos**
 
 ```{r}
-m0 <- glm(y ~1, data = data_train, family = "binomial")
+#m0 <- glm(y ~1, data = data_train, family = "binomial")
 m1 <- glm(y ~ ., data = data_train, family = "binomial")
 m2 <- glm(y ~ age, data = data_train, family = "binomial")
 m3 <- glm(y ~ emp.var.rate, data = data_train, family = "binomial")
-m4 <- glm(y ~ month+duration+poutcome, data = data_train, family = "binomial")
-m5 <- glm(y ~ month+poutcome, data = data_train, family = "binomial")
+#modelo forward
+m4 <- glm(y ~ month+pdays+poutcome+cons.conf.idx+nr.employed, data = data_train, family = "binomial")
+#modelo backward
+m5 <- glm(y ~ month+poutcome+emp.var.rate+cons.price.idx, data = data_train, family = "binomial")
+#modelo comunes back y forward.
+m6 <- glm(y ~ month+duration+poutcome, data = data_train, family = "binomial")
+#modelo comunes back y forward sin duración 
+m7 <- glm(y ~ month+poutcome, data = data_train, family = "binomial")
 ```
 
-El modelo 0 corresponde al modelo sin variables.
 El modelo 1 corresponde al modelo con todas las variables.
 Los modelos 2 y 3 son modelos con la variable que menos correlaciona (edad) y la que más correlaciona (tasa de variación de empleo).
-El modelo 4 corresponde a las variables comunes entre los métodos automáticos de forward y backward.
-El modelo 5 es igual que el modelo 4, sin la variable duración de la llamada.
+El modelo 4 y 5 corresponden a los métodos automáticos de forward y backward.
+El modelo 6 corresponde a las variables comunes entre los métodos automáticos de forward y backward.
+El modelo 7 es igual que el modelo 6, sin la variable duración de la llamada.
 
 ### Variables significativas del modelo completo
 ```{r}
@@ -1042,12 +1048,41 @@ names(sig.var)[sig.var == TRUE]
 ```
 
 
-Por tanto, las variables significativas del modelo son el trabajo (jubilado), educación (universidad), dispositivo de contacto (teléfono), mes de contacto (abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre y diciembre), día de la semana de contacto (martes, miércoles y jueves), duración, días desde el contacto previo, número de contactos durante esta campaña, ratio de variación del empleo, índice de precios al consumo, índice de confianza del consumidor y el número de empleados. La duración de la llamada no se considera relevante, ya que se obtiene después de haber realizado la transacción. Esta variable, al tener una alta correlación con la variable de salida, infraestima los valores de error y sobrestima el ajuste.
+Por tanto, las variables significativas del modelo son el trabajo (jubilado), educación (universidad), dispositivo de contacto (teléfono), mes de contacto (abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre y diciembre), día de la semana de contacto (martes, miércoles y jueves), duración, días desde el contacto previo, número de contactos durante esta campaña, ratio de variación del empleo, índice de precios al consumo, índice de confianza del consumidor y el número de empleados. La duración de la llamada no se considera relevante, ya que se obtiene después de haber realizado la transacción. Esta variable, al tener una alta correlación con la variable de salida, infraestima los valores de error y sobrestima el ajuste. Con esto, creamos el modelo 8 con todas las variables significativas del modelo completo, menos la duración de la llamada. 
 
 ```{r}
-m6 <- glm(y ~ job+education+default+contact+month+campaign+pdays+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data= data_train)
-summary(m6)
+m8 <- glm(y ~ job+education+default+contact+month+campaign+pdays+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data= data_train)
+summary(m8)
 ```
+
+**Supuestos de partida para regresión**
+
+Obtenemos la homogeneidad de la varianza, la colinealidad y la normalidad de los residuos, ya que son los supuestos de partida para aplicar la regresión logística. 
+```{r}
+#check_model(m0)
+check_model(m1)
+check_model(m2)
+check_model(m3)
+check_model(m4)
+```
+
+```{r}
+check_model(m5)
+check_model(m6)
+check_model(m7)
+check_model(m8)
+```
+
+```{r}
+compare_performance(m1,m2,m3,m4,m5,m6,m7,m8)
+``` 
+
+Los modelos muestran valores altos de AIC y BIC en general, siendo índices de ajuste de parsimonia, sancionando modelos que requieren un mayor número de variables. Los menores valores son del modelo 1, pero incluye todas las variables (también la variable duración, una variable que no será útil puesto que la obtenemos tras la realización de la llamada). Lo mismo ocurre con el modelo 6, obteniendo valores ligeramente más bajos de AIC y BIC, y de RMSE, así como de $R^2$ de Tjur o el coeficiente D de determinación para variables binarias.  
+
+
+```{r}
+plot(compare_performance(m1,m2,m3,m4,m5,m6,m7,m8, rank = TRUE))
+
 
 **Supuestos de partida para regresión**
 
