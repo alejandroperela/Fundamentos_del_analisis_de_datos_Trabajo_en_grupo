@@ -1060,6 +1060,8 @@ El modelo 7 es igual que el modelo 6, sin la variable duración de la llamada.
 ```{r}
 m8 <- glm(y ~ job+education+default+contact+month+campaign+pdays+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data= data_train)
 summary(m8)
+#Método manual
+m9 <- glm(y ~ month + pdays_aux + poutcome + euribor3m, data = data_train, family = binomial)
 ```
 
 **Supuestos de partida para regresión**
@@ -1083,18 +1085,19 @@ check_model(m5)
 check_model(m6)
 check_model(m7)
 check_model(m8)
+check_model(m9)
 ```
 Los modelos 5,6 y 7 muestran valores bajos de colinealidad, frente al último que tiene valores muy altos, aumentando el riesgo de sesgo. La normalidad en el gráfico Q-Q son similares entre modelos, siendo la más diferente en el modelo 5. Aunque los valores de leverage son altos, el único modelo en el que se ajusta es el modelo 8
 
 ```{r}
-compare_performance(m1,m2,m3,m4,m5,m6,m7,m8)
+compare_performance(m1,m2,m3,m4,m5,m6,m7,m8,m9)
 ``` 
 
 Los modelos muestran valores altos de AIC y BIC en general, siendo índices de ajuste de parsimonia, sancionando modelos que requieren un mayor número de variables. Los menores valores son del modelo 1, pero incluye todas las variables (también la variable duración, una variable que no será útil puesto que la obtenemos tras la realización de la llamada). Lo mismo ocurre con el modelo 6, obteniendo valores ligeramente más bajos de AIC y BIC, y de RMSE, así como de $R^2$ de Tjur o el coeficiente D de determinación para variables binarias  El modelo 8 será el seleccionado, debido a la información extra y al aumento del valor de 
 
 
 ```{r}
-plot(compare_performance(m1,m2,m3,m4,m5,m6,m7,m8, rank = TRUE))
+plot(compare_performance(m1,m2,m3,m4,m5,m6,m7,m8,m9, rank = TRUE))
 ```
 
 Gráficamente, podemos evaluar que cuanto más cercano del centro, mejor rendimiento muestra. El objetivo es reducir AIC, BIC y RMSE y aumentar el $R^2$. 
