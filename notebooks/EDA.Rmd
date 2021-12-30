@@ -42,6 +42,7 @@ library(performance)
 library(see)
 library(patchwork)
 library(blorr)
+library(ltm)
 ```
 
 
@@ -405,7 +406,7 @@ tabla<-table(y,housing)
 chisq.test(tabla)
 chisq.test(tabla, simulate.p.value = TRUE, B = 5000)
 ```
-A pesar de que graficamente no se observan diferencias significativas, al realizar el test chi-cuadrado rechazamos la hipotesis nula, por lo que sí hay una asociacion significativa entre la varibale housing y la clase y
+A pesar de que graficamente no se observan diferencias significativas, al realizar el test chi-cuadrado rechazamos la hipotesis nula, por lo que sí hay una asociacion significativa entre la variable housing y la clase y
 
 
 **Préstamo**
@@ -454,7 +455,7 @@ Para comprobar si es cierto que hay diferencias significativas realizamos el tes
 tabla<-table(y,contact)
 chisq.test(tabla)
 ```
-Rechazamos la hipotesis nula para cualquier nivel de significancia. La variable contact presenta una asociacion estadisticamente signficativa para y
+Rechazamos la hipótesis nula para cualquier nivel de significancia. La variable contact presenta una asociación estadísticamente signficativa para y
 
 
 **Mes de contacto**
@@ -508,7 +509,7 @@ Para comprobar si es cierto que no hay diferencias significativas vamos a hacer 
 tabla<-table(y,day_of_week)
 chisq.test(tabla)
 ```
-Rechazamos la hipotesis nula para cualquier nivel de significancia, es decir, existe una asociacion significativa entre el dia de la semana y la clase y
+Rechazamos la hipótesis nula para cualquier nivel de significancia, es decir, existe una asociación significativa entre el día de la semana y la clase y
 
 
 **Días desde el contacto previo**
@@ -531,10 +532,10 @@ Observamos que el ratio de conversión más alto es el que corresponde a la gent
 
 Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
 ```{r}
-tabla<-table(y,pdays_aux)
+tabla<-table(y,data_train$pdays_aux)
 chisq.test(tabla)
 ```
-Rechazamos la hipotesis nula. Por lo tanto, existe una asociacion estadisticamente significativa entre la variable pdays_aux y la clase y
+Rechazamos la hipótesis nula. Por lo tanto, existe una asociación estadísticamente significativa entre la variable pdays_aux y la clase y
 
 
 **Resultado de la campaña previa**
@@ -608,8 +609,9 @@ Para comprobar si es cierto que existen evidencias significativas realizamos el 
 El llamado test de Student ayuda a determinar si la diferencia observada es o no estadísticamente significativa
 ```{r test de Student age}
 t.test(age~y)
+biserial.cor(x = age,  y = y, level = 2)
 ```
-Observando el p-valor sí se consideraría que existen diferencias significativas entre los grupos, por tanto, la edad sí esta asociado a y
+Observando el p-valor sí se consideraría que existen diferencias significativas entre los grupos, por tanto, la edad sí está asociado a y, aunque encontramos que la correlación es relativamente baja.
 
 
 **Duración de la llamada**
@@ -632,7 +634,7 @@ Para comprobar si es cierto que existen evidencias significativas realizamos el 
 ```{r test de Student duration}
 t.test(duration~y)
 ```
-Sí existe diferencia significativa entre los grupos, por tanto, la duracion de la ultima llamada sí esta asociado a y
+Sí existe diferencia significativa entre los grupos, por tanto, la duración de la última llamada sí esta asociado a y
 
 
 **Número de contactos durante esta campaña**
@@ -665,7 +667,7 @@ Para comprobar si es cierto que existen evidencias significativas realizamos el 
 ```{r}
 t.test(campaign~y)
 ```
-Rechazamos la hipotesis nula para cualquier nivel de significancia por lo que sí se consideraría que existe diferencia significativa entre los grupos. Por lo tanto, campaign sí esta asociado a y
+Rechazamos la hipótesis nula para cualquier nivel de significancia por lo que sí se consideraría que existe diferencia significativa entre los grupos. Por lo tanto, campaign sí esta asociado a y
 
 
 **Número de veces contactado antes de esta campaña**
@@ -731,7 +733,7 @@ Para comprobar si es cierto que existen evidencias significativas realizamos el 
 ```{r}
 t.test(emp.var.rate~y)
 ```
-El p-valor es inferior a 0.05, rechazamos la hipotesis nula al considerar que sí existe diferencia significativa entre los grupos, es decir, el ratio de variacion del empleo sí esta asociado a y
+El p-valor es inferior a 0.05, rechazamos la hipótesis nula al considerar que sí existe diferencia significativa entre los grupos, es decir, el ratio de variación del empleo sí esta asociado a y
 
 
 **Índice de precios al consumo**
@@ -766,7 +768,7 @@ Para comprobar si es cierto que hay diferencias significativas vamos a hacer un 
 ```{r}
 t.test(cons.price.idx~y)
 ```
-Se consideraría que sí existe diferencia significativa entre los grupos al rechazar la hipotesis nula, por tanto, el indice de precios al consumo sí esta asociado a y
+Se consideraría que sí existe diferencia significativa entre los grupos al rechazar la hipótesis nula, por tanto, el índice de precios al consumo sí esta asociado a y
 
 
 **Índice de confianza del consumidor**
@@ -799,7 +801,7 @@ Para comprobar si es cierto que existen evidencias significativas realizamos el 
 ```{r}
 t.test(cons.conf.idx~y)
 ```
-Al rechazar la hipotesis nula se considera que sí existe diferencia significativa entre los grupos, por tanto, existe una asociacion estadisticamente significativa entre el indice de confianza del consumidor y la clase y
+Al rechazar la hipótesis nula se considera que sí existe diferencia significativa entre los grupos, por tanto, existe una asociación estadísticamente significativa entre el índice de confianza del consumidor y la clase y
 
 
 **Euribor a 3 meses**
@@ -822,7 +824,7 @@ Para comprobar si es cierto que existen evidencias significativas realizamos el 
 ```{r}
 t.test(euribor3m~y)
 ```
-Rechazamos la hipotesis nula para cualquier nivel de significancia, se considera que sí existe diferencia significativa entre los grupos, por tanto, el euribor sí esta asociado a y
+Rechazamos la hipótesis nula para cualquier nivel de significancia, se considera que sí existe diferencia significativa entre los grupos, por tanto, el euribor sí esta asociado a y
 
 
 **Número de empleados**
@@ -1023,6 +1025,20 @@ Ambos métodos sugieren como variables relevantes comunes el mes, la duración d
 ```{r}
 #m0 <- glm(y ~1, data = data_train, family = "binomial")
 m1 <- glm(y ~ ., data = data_train, family = "binomial")
+```
+
+El modelo 1 corresponde al modelo con todas las variables.
+
+### Variables significativas del modelo completo
+```{r}
+sig.var<- summary(m1)$coeff[-1,4] <0.01
+names(sig.var)[sig.var == TRUE]
+```
+
+
+Por tanto, las variables significativas del modelo son el trabajo (jubilado), educación (universidad), dispositivo de contacto (teléfono), mes de contacto (abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre y diciembre), día de la semana de contacto (martes, miércoles y jueves), duración, días desde el contacto previo, número de contactos durante esta campaña, ratio de variación del empleo, índice de precios al consumo, índice de confianza del consumidor y el número de empleados. La duración de la llamada no se considera relevante, ya que se obtiene después de haber realizado la transacción. Esta variable, al tener una alta correlación con la variable de salida, infraestima los valores de error y sobrestima el ajuste. Con esto, creamos el modelo 8 con todas las variables significativas del modelo completo, menos la duración de la llamada. 
+
+```{r}
 m2 <- glm(y ~ age, data = data_train, family = "binomial")
 m3 <- glm(y ~ emp.var.rate, data = data_train, family = "binomial")
 #modelo forward
@@ -1035,20 +1051,11 @@ m6 <- glm(y ~ month+duration+poutcome, data = data_train, family = "binomial")
 m7 <- glm(y ~ month+poutcome, data = data_train, family = "binomial")
 ```
 
-El modelo 1 corresponde al modelo con todas las variables.
-Los modelos 2 y 3 son modelos con la variable que menos correlaciona (edad) y la que más correlaciona (tasa de variación de empleo).
+Los modelos 2 y 3 son modelos con la variable que menos correlaciona (edad) y la que más correlaciona con el resto (tasa de variación de empleo).
 El modelo 4 y 5 corresponden a los métodos automáticos de forward y backward.
 El modelo 6 corresponde a las variables comunes entre los métodos automáticos de forward y backward.
 El modelo 7 es igual que el modelo 6, sin la variable duración de la llamada.
 
-### Variables significativas del modelo completo
-```{r}
-sig.var<- summary(m1)$coeff[-1,4] <0.01
-names(sig.var)[sig.var == TRUE]
-```
-
-
-Por tanto, las variables significativas del modelo son el trabajo (jubilado), educación (universidad), dispositivo de contacto (teléfono), mes de contacto (abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre y diciembre), día de la semana de contacto (martes, miércoles y jueves), duración, días desde el contacto previo, número de contactos durante esta campaña, ratio de variación del empleo, índice de precios al consumo, índice de confianza del consumidor y el número de empleados. La duración de la llamada no se considera relevante, ya que se obtiene después de haber realizado la transacción. Esta variable, al tener una alta correlación con la variable de salida, infraestima los valores de error y sobrestima el ajuste. Con esto, creamos el modelo 8 con todas las variables significativas del modelo completo, menos la duración de la llamada. 
 
 ```{r}
 m8 <- glm(y ~ job+education+default+contact+month+campaign+pdays+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data= data_train)
@@ -1057,7 +1064,8 @@ summary(m8)
 
 **Supuestos de partida para regresión**
 
-Obtenemos la homogeneidad de la varianza, la colinealidad y la normalidad de los residuos, ya que son los supuestos de partida para aplicar la regresión logística. 
+Obtenemos la homogeneidad de la varianza, la colinealidad y la normalidad de los residuos, ya que son los supuestos de partida para aplicar la regresión logística 
+
 ```{r}
 #check_model(m0)
 check_model(m1)
@@ -1065,6 +1073,10 @@ check_model(m2)
 check_model(m3)
 check_model(m4)
 ```
+El modelo 1 tiene valores muy altos de colinealidad, coherente con el uso de variables muy correlacionadas como mencionamos previamente. pero valores adecuados de 
+Los modelos 2 y 3 no muestra la gráfica de colinealidad por tener un solo predictor. El modelo 4 muestra valores bajos de colinealidad.
+
+Ninguno de estos 4 modelos muestra valores adecuados en la normalidad de los residuos, en el gráfico Q-Q. Los puntos se encuentran en los modelos dentro del intervalo marcado por la distancia D de Cook
 
 ```{r}
 check_model(m5)
@@ -1072,48 +1084,25 @@ check_model(m6)
 check_model(m7)
 check_model(m8)
 ```
+Los modelos 5,6 y 7 muestran valores bajos de colinealidad, frente al último que tiene valores muy altos, aumentando el riesgo de sesgo. La normalidad en el gráfico Q-Q son similares entre modelos, siendo la más diferente en el modelo 5. Aunque los valores de leverage son altos, el único modelo en el que se ajusta es el modelo 8
 
 ```{r}
 compare_performance(m1,m2,m3,m4,m5,m6,m7,m8)
 ``` 
 
-Los modelos muestran valores altos de AIC y BIC en general, siendo índices de ajuste de parsimonia, sancionando modelos que requieren un mayor número de variables. Los menores valores son del modelo 1, pero incluye todas las variables (también la variable duración, una variable que no será útil puesto que la obtenemos tras la realización de la llamada). Lo mismo ocurre con el modelo 6, obteniendo valores ligeramente más bajos de AIC y BIC, y de RMSE, así como de $R^2$ de Tjur o el coeficiente D de determinación para variables binarias.  
+Los modelos muestran valores altos de AIC y BIC en general, siendo índices de ajuste de parsimonia, sancionando modelos que requieren un mayor número de variables. Los menores valores son del modelo 1, pero incluye todas las variables (también la variable duración, una variable que no será útil puesto que la obtenemos tras la realización de la llamada). Lo mismo ocurre con el modelo 6, obteniendo valores ligeramente más bajos de AIC y BIC, y de RMSE, así como de $R^2$ de Tjur o el coeficiente D de determinación para variables binarias  El modelo 8 será el seleccionado, debido a la información extra y al aumento del valor de 
 
 
 ```{r}
 plot(compare_performance(m1,m2,m3,m4,m5,m6,m7,m8, rank = TRUE))
-
-
-**Supuestos de partida para regresión**
-
-Obtenemos la homogeneidad de la varianza, la colinealidad y la normalidad de los residuos, ya que son los supuestos de partida para aplicar la regresión logística. 
-```{r}
-check_model(m0)
-check_model(m1)
-check_model(m2)
-```
-```{r}
-check_model(m3)
-check_model(m4)
-check_model(m5)
-check_model(m6)
 ```
 
-```{r}
-compare_performance(m0,m1,m3,m4,m5,m6)
-``` 
-
-Los modelos muestran valores altos de AIC y BIC en general, siendo índices de ajuste de parsimonia, sancionando modelos que requieren un mayor número de variables. Los menores valores son del modelo 1, pero incluye la variable duración, una variable que no será útil puesto que la obtenemos tras la realización de la llamada. El modelo 5 está sin dicha variable, obteniendo valores ligeramente más bajos de $R^2$, y de RMSE, que indica el error cuadrático medio, siendo un índice que cuanto más bajo será mejor. 
-
-```{r}
-plot(compare_performance(m0,m1,m2,m3,m4,m5,m6, rank = TRUE))
-```
-Gráficamente, podemos evaluar que cuanto más cercano del centro, mejor rendimiento muestra.
+Gráficamente, podemos evaluar que cuanto más cercano del centro, mejor rendimiento muestra. El objetivo es reducir AIC, BIC y RMSE y aumentar el $R^2$. 
 
 ## Modelo 1. Modelo completo
+
 ```{r}
-vif(m1)
-dwt(m1, alternative = "two.sided")
+Box.test(residuals(m1),type="Ljung-Box")
 ```
 Hay presencia de autocorrelación, lo que podría sesgar el modelo.
 
@@ -1144,6 +1133,7 @@ F1 <- 2*(precision*recall)/(precision+recall)
 accuracy <- (TP+TN)/(TP+TN+FP+FN)
 tabla1 <- matrix(data = c(precision,recall,F1,accuracy), ncol=1, nrow=4)
 rownames(tabla1) <- c("Precision","Recall","F1","Accuracy")
+tabla1
 ```
 
 ```{r}
@@ -1152,6 +1142,7 @@ mosaic(matriz_confusion, shade = T, colorize = T,
 ``` 
 
 ```{r}
+data_test$pdays_aux <- as.factor(data_test$pdays_aux)
 pred1<- predict.glm(m1,newdata = data_test, type="response")
 result1<- table(data_test$y, floor(pred1+0.5))
 result1
@@ -1180,54 +1171,54 @@ logistic_gains_table <- blr_gains_table(m1, data = data_train)
 blr_decile_lift_chart(logistic_gains_table)
 blr_ks_chart(logistic_gains_table)
 ```
+El lift chart muestra... el KS chart muestra una estructura similar a la curva ROC.
 
-
-## Modelo final seleccionado. Modelo...
+## Modelo final seleccionado. Modelo 8.
 
 ```{r}
-vif(m1)
-dwt(m1, alternative = "two.sided")
+Box.test(residuals(m8),type="Ljung-Box")
 ```
 Hay presencia de autocorrelación, lo que podría sesgar el modelo.
 
 
-### Predicciones y matriz de confusión del modelo completo (m1).
+### Predicciones y matriz de confusión del modelo final (m8).
 
 ```{r}
-predicciones <- ifelse(test = m1$fitted.values > 0.5, yes = 1, no = 0)
-matriz_confusion <- table(m1$model$y, predicciones,
+predicciones1 <- ifelse(test = m8$fitted.values > 0.5, yes = 1, no = 0)
+matriz_confusion1 <- table(m8$model$y, predicciones1,
                           dnn = c("observaciones", "predicciones"))
-matriz_confusion
+matriz_confusion1
 ```
 
 ```{r}
-TN <- matriz_confusion[1,1]
-FP <- matriz_confusion[1,2]
-FN <- matriz_confusion[2,1]
-TP <- matriz_confusion[2,2]
+TN1 <- matriz_confusion1[1,1]
+FP1 <- matriz_confusion1[1,2]
+FN1 <- matriz_confusion1[2,1]
+TP1 <- matriz_confusion1[2,2]
 ```
 
 Se observa una mejor ratio de TN que de TP.
 
 *Medidas de clasificación*
 ```{r}
-precision <- TP/(TP+FP)
-recall <- TP/(TP+FN)
-F1 <- 2*(precision*recall)/(precision+recall)
-accuracy <- (TP+TN)/(TP+TN+FP+FN)
-tabla1 <- matrix(data = c(precision,recall,F1,accuracy), ncol=1, nrow=4)
-rownames(tabla1) <- c("Precision","Recall","F1","Accuracy")
+precision1 <- TP1/(TP1+FP1)
+recall1 <- TP1/(TP1+FN1)
+F11 <- 2*(precision1*recall1)/(precision1+recall1)
+accuracy1 <- (TP1+TN1)/(TP1+TN1+FP1+FN1)
+tabla11 <- matrix(data = c(precision1,recall1,F11,accuracy1), ncol=1, nrow=4)
+rownames(tabla11) <- c("Precision","Recall","F1","Accuracy")
+tabla11
 ```
 
 ```{r}
-mosaic(matriz_confusion, shade = T, colorize = T,
+mosaic(matriz_confusion1, shade = T, colorize = T,
        gp = gpar(fill = matrix(c("green3", "red2", "red2", "green3"), 2, 2)))
 ``` 
 
 ```{r}
-pred1<- predict.glm(m1,newdata = data_test, type="response")
-result1<- table(data_test$y, floor(pred1+0.5))
-result1
+pred11<- predict.glm(m8,newdata = data_test, type="response")
+result11<- table(data_test$y, floor(pred11+0.5))
+result11
 ```
 
 **Curva ROC**
@@ -1235,19 +1226,20 @@ result1
 Realizamos la curva ROC para evaluar el AUC del modelo.
 
 ```{r}
-ROC <- roc(data_test$y, pred1)
-plot(ROC, col = "red")
-auc(ROC)
-logistic_gains_table1 <- blr_gains_table(m1, data = data_train)
-blr_roc_curve(logistic_gains_table1)
+ROC1 <- roc(data_test$y, pred11)
+plot(ROC1, col = "red")
+auc(ROC1)
+logistic_gains_table11 <- blr_gains_table(m8, data = data_train)
+blr_roc_curve(logistic_gains_table11)
 ```
 
-El AUC tiene un valor muy adecuado. Sin embargo, analizaremos un modelo más parsimonioso que el modelo completo. 
+El AUC tiene un valor más bajo que el modelo completo.
 
 **Lift chart y KS Chart**
 
 ```{r}
-logistic_gains_table <- blr_gains_table(m1, data = data_train)
-blr_decile_lift_chart(logistic_gains_table)
-blr_ks_chart(logistic_gains_table)
+logistic_gains_table1 <- blr_gains_table(m8, data = data_train)
+blr_decile_lift_chart(logistic_gains_table1)
+blr_ks_chart(logistic_gains_table1)
 ```
+El KS se ha reducido significativamente frente al modelo completo.
