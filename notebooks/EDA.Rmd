@@ -1246,3 +1246,9 @@ blr_decile_lift_chart(logistic_gains_table1)
 blr_ks_chart(logistic_gains_table1)
 ```
 El KS se ha reducido significativamente frente al modelo completo.
+
+** Conclusiones **
+
+El ajuste en general, así como las predicciones han de ser tomadas con cautela debido a los supuestos de partida de la regresión logística.
+Los modelos de regresión logística muestran un ajuste pobre, quedando claro que la variable duración aumenta articialmente el ajuste. En general, el modelo completo (m1) es el modelo que ajusta mejor. 
+Con otros modelos obtenemos valores ligeramente peores, pero son mucho más parsimoniosos. 
