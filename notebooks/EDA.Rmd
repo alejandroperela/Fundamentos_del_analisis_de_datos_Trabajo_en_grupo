@@ -88,6 +88,7 @@ Diccionario con la definición de los diferentes campos que incluye el dataset
   Output variable (desired target):  
   21 - **y** - has the client subscribed a term deposit? (binary: "yes","no")  
 
+Las variables 16, 17, 18, 19 y 20 no pertenecen a la muestra original y han sido extraídas de https://www.bportugal.pt/estatisticasweb.
 
 # Lectura y preparación de datos
 
