@@ -1,5 +1,5 @@
 ---
-title: "EDA"
+title: "Métodos de Análisis de datos"
 author: "Andrea Condado, Alejandro Perela y Miguel Calvo"
 date: "08/01/2022"
 output:
@@ -185,12 +185,12 @@ Las tres variables con NA son las variables educación (en torno al 4 %) y las v
 
 ```{r impute data_train, warning=FALSE, message=FALSE}
 #imputación mucho más lenta que pmm (media)
-impdata_train <- mice(data_train, m=5, maxit = 50, method = 'cart', seed = 1234)
-summary(impdata_train)
-sum(is.na(impdata_train))
-data_train <- impdata_train
+#impdata_train <- mice(data_train, m=5, maxit = 50, method = 'mean', seed = 1234)
+#summary(impdata_train)
+#sum(is.na(impdata_train))
+#data_train <- impdata_train
 ```
-En estimaciones de valores perdidos, dentro de las estimaciones univariantes, usaremos el método de árbol de decisiones, frente a otros métodos de regresión o la media y la moda.
+En estimaciones de valores perdidos, dentro de las estimaciones univariantes, usaremos el método de árbol de regresiones, frente a la media y la moda.
 
 
 
@@ -1016,7 +1016,7 @@ Las variables relevantes para obtener el modelo con mejor ajuste y redimiento ob
 regfit_bwd <- leaps::regsubsets(y~., data_train, method="backward")
 for (metric in c("r2", "adjr2", "Cp", "bic")){plot(regfit_bwd, scale=metric)}
 ```
-Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método backward serían mes (abril, mayo, junio y octubre), duración de la llamada, poutcome, emp.var.rate y cons.price.idx.
+Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método backward serían mes (abril, mayo, junio y octubre), duración de la llamada, poutcome, emp.var.rate y cons.price.idx. 
 
 Ambos métodos sugieren como variables relevantes comunes el mes, la duración de la llamada y el resultado de la campaña previa.
 
@@ -1251,4 +1251,5 @@ El KS se ha reducido significativamente frente al modelo completo.
 
 El ajuste en general, así como las predicciones han de ser tomadas con cautela debido a los supuestos de partida de la regresión logística.
 Los modelos de regresión logística muestran un ajuste pobre, quedando claro que la variable duración aumenta articialmente el ajuste. En general, el modelo completo (m1) es el modelo que ajusta mejor. 
+
 Con otros modelos obtenemos valores ligeramente peores, pero son mucho más parsimoniosos. 
