@@ -200,7 +200,7 @@ En estimaciones de valores perdidos, dentro de las estimaciones univariantes, us
 El primer paso siempre debe consistir en efectuar un análisis exploratorio de los datos, para empezar a detectar posibles problemas.
 ```{r eda_inicial, warning=FALSE, message=FALSE, fig.width=12, fig.height=8}
 
-data_train %>% select(age,duration,campaign,pdays,previous,emp.var.rate,cons.conf.idx, cons.price.idx,euribor3m,nr.employed,y) %>%
+data_train %>% dplyr::select(age,duration,campaign,pdays,previous,emp.var.rate,cons.conf.idx, cons.price.idx,euribor3m,nr.employed,y) %>%
   na.omit() %>%
   ggpairs(columns = 1:9, 
           mapping = ggplot2::aes(colour=y), 
@@ -305,9 +305,9 @@ ggplot(df3, aes(x = reorder(job, -records), y=records, fill=y, ymax=records*1.15
 Parece que los trabajos que mejor ratio de conversión tienen son los de jubilado, desempleado y estudiante, por lo que job podría ser un buen predictor. Ninguna parece estar relacionada con una forma activa de empleo, lo cual podría indicar la naturaleza del producto financiero ofrecido
 
 Graficamente se observan diferencias significativas entre los  grupos, para comprobar si esto es cierto vamos a hacer un test chi-cuadrado
-```{r test chi-cuadrado}
-tabla<-table(y,job)
-chisq.test(tabla)
+```{r test chi-cuadrado 1}
+tabla1<-table(y,job)
+chisq.test(tabla1)
 ```
 Se rechaza la hipótesis nula para cualquier nivel de significancia, luego consideraremos que no hay independencia entre ambas variables, es decir, hay una asociación estadísticamente significativa entre la variable trabajo y la clase y
 
@@ -328,7 +328,7 @@ ggplot(df3, aes(x = reorder(marital, -records), y=records, fill=y, ymax=records*
 
 No hay grandes diferencias en la contratación cuando clasificamos a la gente por su estado civil.
 Para comprobar si es cierto que no hay diferencias significativas realizamos un test chi-cuadrado
-```{r test chi-cuadrado}
+```{r test chi-cuadrado 2}
 tabla<-table(y,marital)
 chisq.test(tabla)
 ```
@@ -377,7 +377,7 @@ ggplot(df3, aes(x = reorder(default, -records), y=records, fill=y, ymax=records*
 El impago sí que parece un predictor relevante, dado que la gente que no tiene default tiene un ratio de conversión mejor. El valor de unknown podría justificarse con que la gente no quiere decir que hay tenido impagos, y estos impagos podrían implicar una menor capacidad económica y, por tanto, una menor porbabilidad de contratar un producto financiero
 
 Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test de Fisher
-```{r test de Fisher}
+```{r test de Fisher 2}
 tabla<-table(y,default)
 #Con chi-cuadrado daba problemas por lo que uso fisher
 fisher.test(tabla)
@@ -402,7 +402,7 @@ ggplot(df3, aes(x = reorder(housing, -records), y=records, fill=y, ymax=records*
 No se aprecian diferencias en si el contactado tiene una hipoteca o no
 
 Para comprobar si es cierto que no hay diferencias significativas realizamos un test chi-cuadrado
-```{r test chi-cuadrado}
+```{r test chi-cuadrado 3}
 tabla<-table(y,housing)
 chisq.test(tabla)
 chisq.test(tabla, simulate.p.value = TRUE, B = 5000)
@@ -427,7 +427,7 @@ ggplot(df3, aes(x = reorder(loan, -records), y=records, fill=y, ymax=records*1.1
 Tampoco parece haber diferencias teniendo en cuenta si la persona tenía un préstamo o no
 
 Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
-```{r}
+```{r test chi cuadrado 4}
 tabla<-table(y,loan)
 chisq.test(tabla)
 chisq.test(tabla, simulate.p.value = TRUE, B = 5000)
@@ -452,7 +452,7 @@ ggplot(df3, aes(x = reorder(contact, -records), y=records, fill=y, ymax=records*
 Parece que la forma de contactar con cada persona podría ser un buen predictor, teniendo el teléfono una ratio de conversión 3 veces superior al teléfono fijo
 
 Para comprobar si es cierto que hay diferencias significativas realizamos el test chi-cuadrado
-```{r}
+```{r test chi cuadrado 5}
 tabla<-table(y,contact)
 chisq.test(tabla)
 ```
@@ -479,7 +479,7 @@ ggplot(df3, aes(x = reorder(month, -records), y=records, fill=y, ymax=records*1.
 El mes también parece un muy buen predictor, habiendo meses como marzo, septiembre, octubre o diciembre, con una ratio de conversión muy alta. Cabe destacar también que son los meses con un menor número de llamadas
 
 Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
-```{r}
+```{r test chi cuadrado 6}
 tabla<-table(y,month)
 chisq.test(tabla)
 ```
@@ -506,7 +506,7 @@ ggplot(df3, aes(x = reorder(day_of_week, -records), y=records, fill=y, ymax=reco
 No parece haber ninguna influencia en el resultado de la camapaña por parte del día de la semana de contacto
 
 Para comprobar si es cierto que no hay diferencias significativas vamos a hacer un test chi-cuadrado
-```{r}
+```{r test chi cuadrado 7}
 tabla<-table(y,day_of_week)
 chisq.test(tabla)
 ```
@@ -532,7 +532,7 @@ ggplot(df3, aes(x=reorder(pdays_aux,-records),y=records, fill=y, ymax=records*1.
 Observamos que el ratio de conversión más alto es el que corresponde a la gente que nunca fue contactada en la campaña anterior, por lo que la variable que indica si se ha contactado anteriormente con el cliente puede ser un buen predictor
 
 Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
-```{r}
+```{r test chi cuadrado 8}
 tabla<-table(y,data_train$pdays_aux)
 chisq.test(tabla)
 ```
@@ -556,7 +556,7 @@ ggplot(df3, aes(x = reorder(poutcome, -records), y=records, fill=y, ymax=records
 El resultado de la campaña previa también puede ser un buen predictor
 
 Para comprobar si es cierto que hay diferencias significativas realizamos un test chi-cuadrado
-```{r}
+```{r test chi cuadrado 9}
 tabla<-table(y,poutcome)
 chisq.test(tabla)
 ```
