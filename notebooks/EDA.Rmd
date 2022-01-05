@@ -1003,7 +1003,7 @@ data_test$y[which(data_test$y =="no")] <- 0
 data_test$y[which(data_test$y =="yes")] <- 1
 data_test$y <- as.numeric(data_test$y)
 ```
-#Técnicas automáticas de selección de variables
+## Técnicas automáticas de selección de variables
 
 **Forward Stepwise**
 ```{r}
@@ -1021,7 +1021,7 @@ Las variables relevantes para obtener el modelo con mejor ajuste y redimiento ob
 
 Ambos métodos sugieren como variables relevantes comunes el mes, la duración de la llamada y el resultado de la campaña previa.
 
-**Modelos**
+## Modelos
 
 ```{r}
 #m0 <- glm(y ~1, data = data_train, family = "binomial")
@@ -1030,7 +1030,7 @@ m1 <- glm(y ~ ., data = data_train, family = "binomial")
 
 El modelo 1 corresponde al modelo con todas las variables.
 
-### Variables significativas del modelo completo
+*Variables significativas del modelo completo*
 ```{r}
 sig.var<- summary(m1)$coeff[-1,4] <0.01
 names(sig.var)[sig.var == TRUE]
@@ -1103,7 +1103,7 @@ plot(compare_performance(m1,m2,m3,m4,m5,m6,m7,m8,m9, rank = TRUE))
 
 Gráficamente, podemos evaluar que cuanto más cercano del centro, mejor rendimiento muestra. El objetivo es reducir AIC, BIC y RMSE y aumentar el $R^2$. 
 
-## Modelo 1. Modelo completo
+### Modelo 1. Modelo completo
 
 ```{r}
 Box.test(residuals(m1),type="Ljung-Box")
@@ -1111,7 +1111,7 @@ Box.test(residuals(m1),type="Ljung-Box")
 Hay presencia de autocorrelación, lo que podría sesgar el modelo.
 
 
-### Predicciones y matriz de confusión del modelo completo (m1).
+*Predicciones y matriz de confusión del modelo completo (m1)*
 
 ```{r}
 predicciones <- ifelse(test = m1$fitted.values > 0.5, yes = 1, no = 0)
@@ -1177,7 +1177,7 @@ blr_ks_chart(logistic_gains_table)
 ```
 El lift chart muestra... el KS chart muestra una estructura similar a la curva ROC.
 
-## Modelo final seleccionado. Modelo 8.
+### Modelo final seleccionado. Modelo 8.
 
 ```{r}
 Box.test(residuals(m8),type="Ljung-Box")
@@ -1185,7 +1185,7 @@ Box.test(residuals(m8),type="Ljung-Box")
 Hay presencia de autocorrelación, lo que podría sesgar el modelo.
 
 
-### Predicciones y matriz de confusión del modelo final (m8).
+*Predicciones y matriz de confusión del modelo final (m8)*
 
 ```{r}
 predicciones1 <- ifelse(test = m8$fitted.values > 0.5, yes = 1, no = 0)
@@ -1248,7 +1248,7 @@ blr_ks_chart(logistic_gains_table1)
 ```
 El KS se ha reducido significativamente frente al modelo completo.
 
-** Conclusiones **
+***Conclusiones del ajuste*** 
 
 El ajuste en general, así como las predicciones han de ser tomadas con cautela debido a los supuestos de partida de la regresión logística.
 Los modelos de regresión logística muestran un ajuste pobre, quedando claro que la variable duración aumenta articialmente el ajuste. En general, el modelo completo (m1) es el modelo que ajusta mejor. 
