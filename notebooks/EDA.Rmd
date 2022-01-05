@@ -54,12 +54,12 @@ Para ello, vamos a analizar las diferentes variables para ver cómo es su distri
 
 # Base de datos
 
-La base de datos está basada en los datos tomados en el estudio de [Moro et al., 2014] S. Moro, P. Cortez and P. Rita. A Data-Driven Approach to Predict the Success of Bank Telemarketing. Decision Support Systems, Elsevier, 62:22-31, June 2014.
+La base de datos está basada en los datos tomados en el estudio de [Moro et al., 2014] S. Moro, P. Cortez and P. Rita. A Data-Driven Approach to Predict the Success of Bank Telemarketing. Decision Support Systems, Elsevier, 62:22-31, June 2014. Available at: [pdf] http://dx.doi.org/10.1016/j.dss.2014.03.001 
 
 Contiene 41188 datos y 20 campos, ordenados por fecha desde mayo de 2008 a noviembre de 2010. Los datos vienen de un banco minoritario/personal de Portugal. 
 
 # Diccionario
-Diccionario con la definición de los diferentes campos que incluye el dataset
+Diccionario con la definición de los diferentes campos que incluye el dataset.
 
    1 - **age** (numeric)  
    2 - **job**: type of job (categorical: "admin.","blue-collar","entrepreneur","housemaid","management","retired","self-employed","services","student","technician","unemployed","unknown")  
@@ -92,7 +92,7 @@ Las variables 16, 17, 18, 19 y 20 no pertenecen a la muestra original y han sido
 
 # Lectura y preparación de datos
 
-Cargamos los datos originales para trabajar sobre ellos
+Cargamos los datos originales para trabajar sobre ellos.
 
 ```{r data_load, warning=FALSE, message=FALSE}
 data <- read.csv(file='../data/bank-additional/bank-additional-full.csv', sep=';')
@@ -103,7 +103,7 @@ head(data)
 **Detección de valores NA**
 
 
-Una vez conocemos los diferentes valores que toman las dimensiones de nuestro dataset, sustituimos los valores unkown por NA, para poder trabajar con datos faltantes. Los datos faltantes en este caso parecen ser MNAR (missing not at random), ya que son variables que la persona conoce, pero ha decidido no contestar. También podrían ser MAR (missing at random)
+Una vez conocemos los diferentes valores que toman las dimensiones de nuestro dataset, sustituimos los valores unkown por NA, para poder trabajar con datos faltantes. Los datos faltantes en este caso parecen ser MNAR (missing not at random), ya que son variables que la persona conoce, pero ha decidido no contestar. También podrían ser MAR (missing at random).
 
 ```{r na_dimension, warning=FALSE, message=FALSE}
 data$job[data$job=='unknown'] <- NA
@@ -115,7 +115,7 @@ data$education[data$education=='unknown'] <- NA
 ```
 
 ## División de datos
-Separamos entre el train y test, dado que ya hemos hecho la limpieza de datos pertinente
+Separamos entre el train y test, dado que ya hemos hecho la limpieza de datos pertinente. Los datos train serían el 75 % de la muestra, seleccionada al azar. Los datos test, por tanto, serían un 25 %.
 
 ```{r train_test, warning=FALSE, message=FALSE}
 train_test = train_test_split(data, 
@@ -132,13 +132,13 @@ write.csv(data_test, file='../data/data_test.csv', row.names=TRUE)
 
 # Lectura de datos train
 
-Cargamos los datos train
+Cargamos los datos train.
 ```{r carga de datos train}
 data_train<-read.csv("../data/data_train.csv", header = T, sep = ",") %>%
   subset(select = -X)
 ```
 
-Comprobamos las diferentes variables, según el tipo y los primeros valores
+Comprobamos las diferentes variables, según el tipo y los primeros valores.
 ```{r column_type, warning=FALSE, message=FALSE}
 str(data_train)
 attach(data_train)
@@ -146,7 +146,8 @@ attach(data_train)
 
 ## Modificación del tipo de variable y reordenación de niveles 
 
-Modificamos las variables de tipo char a tipo factory reordenamos los niveles de las variables default, housing, loan, month y day_of_week
+Modificamos las variables de tipo char a tipo factory reordenamos los niveles de las variables default, housing, loan, month y day_of_week.
+
 ```{r modificacion del tipo de variable y reordenacion}
 #tipo de variable
 data_train$job<-as.factor(data_train$job)
@@ -170,10 +171,10 @@ data_train$day_of_week=factor(data_train$day_of_week, levels = c('mon','thu','we
 
 ```
 
-Una vez que todas las columnas tienen el tipo de datos correcto, podemos continuar analizando los diferentes valores que toman las dimensiones cualitativas
+Una vez que todas las columnas tienen el tipo de datos correcto, podemos continuar analizando los diferentes valores que toman las dimensiones cualitativas.
 
 # Análisis exploratorio de datos faltantes
-Una vez hecho esto, visualizamos el porcentaje de valores nulos que hay en nuestros datos, así como la combinación de valores nulos entre las diferentes dimensiones
+Una vez hecho esto, visualizamos el porcentaje de valores nulos que hay en nuestros datos, así como la combinación de valores nulos entre las diferentes dimensiones.
 
 ```{r na_visualization, warning=FALSE, message=FALSE, fig.width=12, fig.height=5}
 aggr_plot <- aggr(data_train[,2:7], col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE,
@@ -186,18 +187,18 @@ Las tres variables con NA son las variables educación (en torno al 4 %) y las v
 
 ```{r impute data_train, warning=FALSE, message=FALSE}
 #imputación mucho más lenta que pmm (media)
-#impdata_train <- mice(data_train, m=5, maxit = 50, method = 'mean', seed = 1234)
+#impdata_train <- mice(data_train, m=5, maxit = 50, method = 'cart', seed = 1234)
 #summary(impdata_train)
 #sum(is.na(impdata_train))
 #data_train <- impdata_train
 ```
-En estimaciones de valores perdidos, dentro de las estimaciones univariantes, usaremos el método de árbol de regresiones, frente a la media y la moda.
-
+En estimaciones de valores perdidos, dentro de las estimaciones univariantes, encontramos varios métodos de imputación, como el árbol de regresione o la media y la moda. 
 
 
 # Análisis exploratorio inicial
 
 El primer paso siempre debe consistir en efectuar un análisis exploratorio de los datos, para empezar a detectar posibles problemas.
+
 ```{r eda_inicial, warning=FALSE, message=FALSE, fig.width=12, fig.height=8}
 
 data_train %>% dplyr::select(age,duration,campaign,pdays,previous,emp.var.rate,cons.conf.idx, cons.price.idx,euribor3m,nr.employed,y) %>%
@@ -251,7 +252,7 @@ En este caso, parece que hay una concentración muy alta de la gente a la que no
 Dado que si tenemos en cuenta a las personas que nunca fueron contactadas el boxplot no es interpretable, plasmamos otro filtrando para que no contengan estos registros. Y nos podemos dar cuenta de que hemos malinterpretado el gráfico de densidad, y que se debe a una alta concentración de valores que nunca han sido contactados. De acuerdo a este último boxplot, la media entre ambos grupos es muy similar, aunque para la gente que no termina contratando los datos son un poco más dispersos.
 
 
-Dado que es complicado trabajar con un datos numérico de 999 cuando no significa 999, y dado que las ratios de conversión son relativamente similares cuando el valor no es 999, clasificamos a los registros en base a si han sido contactados o no. 
+Dado que es complicado trabajar con un datos numérico de 999 cuando no significa 999, y dado que las ratios de conversión son relativamente similares cuando el valor no es 999, clasificamos a los registros en base a si han sido contactados o no, dicotimizando la variable. 
 
 ```{r chart_pdays_aux, fig.align='center', fig.show='hold', fig.width=12, fig.height=5}
 df1 = data_train %>% group_by(y, pdays) %>% summarise(records = n(), .groups = 'drop')
@@ -274,10 +275,11 @@ ggplot(df3 %>% filter(y=='yes'),
   geom_text(stat='identity', aes(label=label_percent(accuracy=1)(share)), vjust=-1.5, position = position_dodge(width = .9),  size=3)
 ```
 
-Los resultados van en línea con lo esperado, teniendo una ratio de conversión más alta la gente que nunca fueron contactados en la campaña anterior 
+Los resultados van en línea con lo esperado, teniendo una ratio de conversión más alta la gente que nunca fueron contactados en la campaña anterior.
 
-Binarizacion de la variable pdays. Transformamos la variable numerica pdays a variable binaria que toma valores {0,1}. 
-La variable vale 1 si el cliente ha sido contactado anteriormente, 0 en caso contrario
+Esta binarizacion de la variable pdays se convertirá en la variable pdays_aux. Transformamos la variable numerica pdays a variable binaria que toma valores {0,1}. 
+
+La variable vale 1 si el cliente ha sido contactado anteriormente, 0 en caso contrario.
 ```{r pdays_aux, include=FALSE}
 data_train<- data_train %>%
   mutate(pdays_aux=ifelse(pdays=="999",0,1)) 
@@ -302,14 +304,15 @@ ggplot(df3, aes(x = reorder(job, -records), y=records, fill=y, ymax=records*1.15
   ggtitle("Distribución por trabajo")
 ```
 
-Parece que los trabajos que mejor ratio de conversión tienen son los de jubilado, desempleado y estudiante, por lo que job podría ser un buen predictor. Ninguna parece estar relacionada con una forma activa de empleo, lo cual podría indicar la naturaleza del producto financiero ofrecido
+Parece que los trabajos que mejor ratio de conversión tienen son los de jubilado, desempleado y estudiante, por lo que job podría ser un buen predictor. Ninguna parece estar relacionada con una forma activa de empleo, lo cual podría indicar la naturaleza del producto financiero ofrecido.
 
-Graficamente se observan diferencias significativas entre los  grupos, para comprobar si esto es cierto vamos a hacer un test chi-cuadrado
+Gráficamente se observan diferencias significativas entre los  grupos, que será comprobado mediante un test chi-cuadrado.
+
 ```{r test chi-cuadrado 1}
 tabla1<-table(y,job)
 chisq.test(tabla1)
 ```
-Se rechaza la hipótesis nula para cualquier nivel de significancia, luego consideraremos que no hay independencia entre ambas variables, es decir, hay una asociación estadísticamente significativa entre la variable trabajo y la clase y
+Se rechaza la hipótesis nula para cualquier nivel de significancia, luego consideraremos que no hay independencia entre ambas variables, es decir, hay una asociación estadísticamente significativa entre la variable trabajo y la clase y.
 
 
 **Estado civil**
@@ -327,12 +330,13 @@ ggplot(df3, aes(x = reorder(marital, -records), y=records, fill=y, ymax=records*
 ```
 
 No hay grandes diferencias en la contratación cuando clasificamos a la gente por su estado civil.
-Para comprobar si es cierto que no hay diferencias significativas realizamos un test chi-cuadrado
+Para comprobar si es cierto que no hay diferencias significativas realizamos un test chi-cuadrado.
+
 ```{r test chi-cuadrado 2}
 tabla<-table(y,marital)
 chisq.test(tabla)
 ```
-A pesar de lo observado en los gráficos, rechazamos la hipótesis nula para cualquier nivel de significancia. Por lo tanto, consideraremos que no hay independencia entre ambas variables, es decir, existe una asociación estadísticamente significativa entre las variables
+A pesar de lo observado en los gráficos, rechazamos la hipótesis nula para cualquier nivel de significancia. Por lo tanto, consideraremos que no hay independencia entre ambas variables, es decir, existe una asociación estadísticamente significativa entre las variables.
 
 
 **Educación**
@@ -349,15 +353,16 @@ ggplot(df3, aes(x = reorder(education, -records), y=records, fill=y, ymax=record
   ggtitle("Distribución por educación")
 ```
 
-La educación parece que juega también un papel importante en la predicción del éxito de la campaña, siendo university.degree y professional.course las educaciones con mejor ratio de conversión. Por lo que también podría ser un buen predictor
+La educación parece que juega también un papel importante en la predicción del éxito de la campaña, siendo university.degree y professional.course las educaciones con mejor ratio de conversión. Por lo que también podría ser un buen predictor.
 
-En esta ocasion, para comprobar si es cierto que hay diferencias significativas entre la variable educacion y la clase vamos a hacer un test de Fisher 
+En esta ocasion, para comprobar si es cierto que hay diferencias significativas entre la variable educacion y la clase vamos a hacer un test de Fisher.
+
 El test exacto de Fisher permite analizar si dos variables dicotómicas están asociadas cuando la muestra a estudiar es demasiado pequeña y no se cumplen las condiciones necesarias para que la aplicación del test chi-cuadrado sea adecuada.
 ```{r test de Fisher}
 tabla<-table(y,education)
 fisher.test(tabla, simulate.p.value = TRUE, B = 5000)
 ```
-Rechazamos la hipótesis nula, luego consideraremos que no hay independencia entre ambas variables, es decir, hay una asociación estadísticamente significativa entre la educacion y la clase y
+Rechazamos la hipótesis nula, luego consideraremos que no hay independencia entre ambas variables, es decir, hay una asociación estadísticamente significativa entre la educación y la clase y.
 
 
 **Impago**
@@ -374,15 +379,15 @@ ggplot(df3, aes(x = reorder(default, -records), y=records, fill=y, ymax=records*
   ggtitle("Distribución por impago")
 ```
 
-El impago sí que parece un predictor relevante, dado que la gente que no tiene default tiene un ratio de conversión mejor. El valor de unknown podría justificarse con que la gente no quiere decir que hay tenido impagos, y estos impagos podrían implicar una menor capacidad económica y, por tanto, una menor porbabilidad de contratar un producto financiero
+El impago sí que parece un predictor relevante, dado que la gente que no tiene default tiene un ratio de conversión mejor. El valor de unknown podría justificarse con que la gente no quiere decir que hay tenido impagos, y estos impagos podrían implicar una menor capacidad económica y, por tanto, una menor porbabilidad de contratar un producto financiero.
 
-Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test de Fisher
+Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test de Fisher.
 ```{r test de Fisher 2}
 tabla<-table(y,default)
 #Con chi-cuadrado daba problemas por lo que uso fisher
 fisher.test(tabla)
 ```
-Rechazamos la hipotesis nula, por lo tanto, la variable default presenta una asociacion significativa para la clase y
+Rechazamos la hipotesis nula, por lo tanto, la variable default presenta una asociación significativa para la clase y.
 
 
 **Hipoteca**
@@ -399,15 +404,16 @@ ggplot(df3, aes(x = reorder(housing, -records), y=records, fill=y, ymax=records*
   ggtitle("Distribución por hipoteca")
 ```
 
-No se aprecian diferencias en si el contactado tiene una hipoteca o no
+No se aprecian diferencias en si el contactado tiene una hipoteca o no.
 
-Para comprobar si es cierto que no hay diferencias significativas realizamos un test chi-cuadrado
+Para comprobar si es cierto que no hay diferencias significativas realizamos un test chi-cuadrado.
 ```{r test chi-cuadrado 3}
 tabla<-table(y,housing)
 chisq.test(tabla)
 chisq.test(tabla, simulate.p.value = TRUE, B = 5000)
 ```
-A pesar de que graficamente no se observan diferencias significativas, al realizar el test chi-cuadrado rechazamos la hipotesis nula, por lo que sí hay una asociacion significativa entre la variable housing y la clase y
+
+A pesar de que gráficamente no se observan diferencias significativas, al realizar el test chi-cuadrado rechazamos la hipótesis nula, por lo que sí hay una asociación significativa entre la variable housing y la clase y.
 
 
 **Préstamo**
@@ -424,15 +430,16 @@ ggplot(df3, aes(x = reorder(loan, -records), y=records, fill=y, ymax=records*1.1
   ggtitle("Distribución por préstamo")
 ```
 
-Tampoco parece haber diferencias teniendo en cuenta si la persona tenía un préstamo o no
+Tampoco parece haber diferencias teniendo en cuenta si la persona tenía un préstamo o no.
 
-Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
+Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado.
 ```{r test chi cuadrado 4}
 tabla<-table(y,loan)
 chisq.test(tabla)
 chisq.test(tabla, simulate.p.value = TRUE, B = 5000)
 ```
-No hay evidencias significativas para rechazar la hipotesis nula. Por lo tanto, no existen evidencias estadisticamente significativas entra la variable loan y la clase
+
+No hay evidencias significativas para rechazar la hipótesis nula. Por lo tanto, no existen evidencias estadisticamente significativas entra la variable loan y la clase.
 
 
 **Dispositivo de contacto**
@@ -449,14 +456,14 @@ ggplot(df3, aes(x = reorder(contact, -records), y=records, fill=y, ymax=records*
   ggtitle("Distribución por dispositivo de contacto")
 ```
 
-Parece que la forma de contactar con cada persona podría ser un buen predictor, teniendo el teléfono una ratio de conversión 3 veces superior al teléfono fijo
+Parece que la forma de contactar con cada persona podría ser un buen predictor, teniendo el teléfono una ratio de conversión 3 veces superior al teléfono fijo.
 
-Para comprobar si es cierto que hay diferencias significativas realizamos el test chi-cuadrado
+Para comprobar si es cierto que hay diferencias significativas realizamos el test chi-cuadrado.
 ```{r test chi cuadrado 5}
 tabla<-table(y,contact)
 chisq.test(tabla)
 ```
-Rechazamos la hipótesis nula para cualquier nivel de significancia. La variable contact presenta una asociación estadísticamente signficativa para y
+Rechazamos la hipótesis nula para cualquier nivel de significancia. La variable contact presenta una asociación estadísticamente signficativa para y.
 
 
 **Mes de contacto**
@@ -476,14 +483,14 @@ ggplot(df3, aes(x = reorder(month, -records), y=records, fill=y, ymax=records*1.
   scale_x_discrete(limits = positions)
 ```
 
-El mes también parece un muy buen predictor, habiendo meses como marzo, septiembre, octubre o diciembre, con una ratio de conversión muy alta. Cabe destacar también que son los meses con un menor número de llamadas
+El mes también parece un muy buen predictor, habiendo meses como marzo, septiembre, octubre o diciembre, con una ratio de conversión muy alta. Cabe destacar también que son los meses con un menor número de llamadas.
 
-Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
+Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado.
 ```{r test chi cuadrado 6}
 tabla<-table(y,month)
 chisq.test(tabla)
 ```
-Rechazamos la hipotesis nula, es decir, la variable month muestra una asociación estadísticamente significativa con la clase y
+Rechazamos la hipótesis nula, es decir, la variable month muestra una asociación estadísticamente significativa con la clase y.
 
 
 **Día de la semana de contacto**
@@ -503,14 +510,15 @@ ggplot(df3, aes(x = reorder(day_of_week, -records), y=records, fill=y, ymax=reco
   scale_x_discrete(limits = positions)
 ```
 
-No parece haber ninguna influencia en el resultado de la camapaña por parte del día de la semana de contacto
+No parece haber ninguna influencia en el resultado de la campaña por parte del día de la semana de contacto.
 
-Para comprobar si es cierto que no hay diferencias significativas vamos a hacer un test chi-cuadrado
+Para comprobar si es cierto que no hay diferencias significativas vamos a hacer un test chi-cuadrado.
+
 ```{r test chi cuadrado 7}
 tabla<-table(y,day_of_week)
 chisq.test(tabla)
 ```
-Rechazamos la hipótesis nula para cualquier nivel de significancia, es decir, existe una asociación significativa entre el día de la semana y la clase y
+Rechazamos la hipótesis nula para cualquier nivel de significancia, es decir, existe una asociación significativa entre el día de la semana y la clase y.
 
 
 **Días desde el contacto previo**
@@ -529,14 +537,15 @@ ggplot(df3, aes(x=reorder(pdays_aux,-records),y=records, fill=y, ymax=records*1.
   
 ```
 
-Observamos que el ratio de conversión más alto es el que corresponde a la gente que nunca fue contactada en la campaña anterior, por lo que la variable que indica si se ha contactado anteriormente con el cliente puede ser un buen predictor
+Observamos que el ratio de conversión más alto es el que corresponde a la gente que nunca fue contactada en la campaña anterior, por lo que la variable que indica si se ha contactado anteriormente con el cliente puede ser un buen predictor.
 
-Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado
+Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado.
 ```{r test chi cuadrado 8}
 tabla<-table(y,data_train$pdays_aux)
 chisq.test(tabla)
 ```
-Rechazamos la hipótesis nula. Por lo tanto, existe una asociación estadísticamente significativa entre la variable pdays_aux y la clase y
+
+Rechazamos la hipótesis nula. Por lo tanto, existe una asociación estadísticamente significativa entre la variable pdays_aux y la clase y.
 
 
 **Resultado de la campaña previa**
@@ -553,14 +562,14 @@ ggplot(df3, aes(x = reorder(poutcome, -records), y=records, fill=y, ymax=records
   ggtitle("Distribución por el resultado de la campaña previa")
 ```
 
-El resultado de la campaña previa también puede ser un buen predictor
+El resultado de la campaña previa también puede ser un buen predictor.
 
-Para comprobar si es cierto que hay diferencias significativas realizamos un test chi-cuadrado
+Para comprobar si es cierto que hay diferencias significativas realizamos un test chi-cuadrado.
 ```{r test chi cuadrado 9}
 tabla<-table(y,poutcome)
 chisq.test(tabla)
 ```
-Observamos que se rechaza la hipotesis nula para cualquier nivel de significancia, es decir,  poutcome presenta una asociacion estadisticamente significativa con la clase
+Observamos que se rechaza la hipótesis nula para cualquier nivel de significancia, es decir,  poutcome presenta una asociación estadísticamente significativa con la clase.
 
 
 **Resultado de esta campaña**
@@ -607,7 +616,7 @@ ggplot(data_train, aes(x=age, y=y)) +
 Como podemos observar en la gráfica de densidad, parece que las personas que terminan contratando son ligeramente más mayores que las que no. Y de hecho, como podemos ver en el gráfico de cajas, las edades son de media más bajas y están menos dispersas para las personas que no contratan.
 
 Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student
-El llamado test de Student ayuda a determinar si la diferencia observada es o no estadísticamente significativa
+El llamado test de Student ayuda a determinar si la diferencia observada es o no estadísticamente significativa.
 ```{r test de Student age}
 t.test(age~y)
 biserial.cor(x = age,  y = y, level = 2)
@@ -629,13 +638,13 @@ ggplot(data_train, aes(x=duration, y=y)) +
   geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
 ```
 
-En este caso, únicamente confirmamos lo que ya sospechábamos, y es que cuanto mayor es la duración de la llamada, mayor es la proporción de personas que termina contratando. La dispersión también es mayor en el caso de la gente que contrata
+En este caso, únicamente confirmamos lo que ya sospechábamos, y es que cuanto mayor es la duración de la llamada, mayor es la proporción de personas que termina contratando. La dispersión también es mayor en el caso de la gente que contrata.
 
-Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student
+Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student.
 ```{r test de Student duration}
 t.test(duration~y)
 ```
-Sí existe diferencia significativa entre los grupos, por tanto, la duración de la última llamada sí esta asociado a y
+Existen diferencias significativas entre los grupos, por tanto, la duración de la última llamada sí está asociado a y.
 
 
 **Número de contactos durante esta campaña**
@@ -662,13 +671,13 @@ ggplot(data_train, aes(x=campaign, y=y)) +
   geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
 ```
 
-Podemos ver que conforme aumentan el número de contactos, la ratio de conversión decrece, lo cual podría indicar que es un buen indicador
+Podemos ver que conforme aumentan el número de contactos, la ratio de conversión decrece, lo cual podría indicar que es un buen indicador.
 
-Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student
+Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student.
 ```{r}
 t.test(campaign~y)
 ```
-Rechazamos la hipótesis nula para cualquier nivel de significancia por lo que sí se consideraría que existe diferencia significativa entre los grupos. Por lo tanto, campaign sí esta asociado a y
+Rechazamos la hipótesis nula para cualquier nivel de significancia por lo que sí se consideraría que existe diferencia significativa entre los grupos. Por lo tanto, campaign sí esta asociado a y.
 
 
 **Número de veces contactado antes de esta campaña**
@@ -695,13 +704,13 @@ ggplot(data_train, aes(x=previous, y=y)) +
   geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
 ```
 
-Parece que la distribución es más o menos similar para ambos grupos de personas, de acuerdo a la función de densidad. Aunque viendo el gráfico de barras apiladas y el gráfico de cajas, parece que hay una mayor concentración de personas que nunca han sido contactadas previamente entre la gente que nunca contrató
+Parece que la distribución es más o menos similar para ambos grupos de personas, de acuerdo a la función de densidad. Aunque viendo el gráfico de barras apiladas y el gráfico de cajas, parece que hay una mayor concentración de personas que nunca han sido contactadas previamente entre la gente que nunca contrató.
 
-Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student
+Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student.
 ```{r}
 t.test(previous~y)
 ```
-Se consideraría que sí existe diferencia significativa entre los grupos, es decir, previous sí esta asociado a y
+Se consideraría que sí existe diferencia significativa entre los grupos, es decir, previous sí está asociado a y.
 
 
 **Ratio de variación del empleo**
@@ -728,13 +737,13 @@ ggplot(data_train, aes(x=emp.var.rate, y=y)) +
   geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
 ```
 
-Parece que cuanto más aumenta el empleo, mayor es la proporción de personas que no termina contratando, lo cual podemos confirmar con el gráfico de cajas. Cuanto más positiva es la variación en el empleo, menos gente contrata, lo cual podría estar relacionado con que la gente tenga menos necesidad de contratar cuando las condiciones macro son mejores
+Parece que cuanto más aumenta el empleo, mayor es la proporción de personas que no termina contratando, lo cual podemos confirmar con el gráfico de cajas. Cuanto más positiva es la variación en el empleo, menos gente contrata, lo cual podría estar relacionado con que la gente tenga menos necesidad de contratar cuando las condiciones macro son mejores.
 
-Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student
+Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student.
 ```{r}
 t.test(emp.var.rate~y)
 ```
-El p-valor es inferior a 0.05, rechazamos la hipótesis nula al considerar que sí existe diferencia significativa entre los grupos, es decir, el ratio de variación del empleo sí esta asociado a y
+El p-valor es inferior a 0.05, rechazamos la hipótesis nula al considerar que sí existe diferencia significativa entre los grupos, es decir, el ratio de variación del empleo sí esta asociado a y.
 
 
 **Índice de precios al consumo**
@@ -765,11 +774,11 @@ Si miramos la gráfica de densidad, parece que cuando hay un mayor número de re
 
 El gráfico de cajas parece indicar algo parecido, dado que la media del índice es ligeramente superior entre los usuarios que no terminaron contratando, aunque esta diferencia no parece muy relevante.
 
-Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test de Student
+Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test de Student.
 ```{r}
 t.test(cons.price.idx~y)
 ```
-Se consideraría que sí existe diferencia significativa entre los grupos al rechazar la hipótesis nula, por tanto, el índice de precios al consumo sí esta asociado a y
+Se consideraría que sí existe diferencia significativa entre los grupos al rechazar la hipótesis nula, por tanto, el índice de precios al consumo sí está asociado a y.
 
 
 **Índice de confianza del consumidor**
@@ -798,11 +807,11 @@ ggplot(data_train, aes(x=cons.conf.idx, y=y)) +
 
 La variable Índice de confianza del consumidor tiene un comportamiento similar a la variable Índice de precios al consumo puesto que cuando el índice está en mínimos la ratio es superior.
 
-Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student
+Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student.
 ```{r}
 t.test(cons.conf.idx~y)
 ```
-Al rechazar la hipótesis nula se considera que sí existe diferencia significativa entre los grupos, por tanto, existe una asociación estadísticamente significativa entre el índice de confianza del consumidor y la clase y
+Al rechazar la hipótesis nula se considera que sí existe diferencia significativa entre los grupos, por tanto, existe una asociación estadísticamente significativa entre el índice de confianza del consumidor y la clase y.
 
 
 **Euribor a 3 meses**
@@ -819,13 +828,13 @@ ggplot(data_train, aes(x=euribor3m, y=y)) +
   geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
 ```
 
-Cuanto mayor es el euribor, menor cantidad de gente contrata, y viceversa; cuanto menor es, más gente contrata. Esto podría deberse a que un menor euribor implica menores intereses en el producto contratado. El gráfico de cajas nos arroja unos resultados similares
+Cuanto mayor es el euribor, menor cantidad de gente contrata, y viceversa; cuanto menor es, más gente contrata. Esto podría deberse a que un menor euribor implica menores intereses en el producto contratado. El gráfico de cajas nos arroja unos resultados similares.
 
 Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student
 ```{r}
 t.test(euribor3m~y)
 ```
-Rechazamos la hipótesis nula para cualquier nivel de significancia, se considera que sí existe diferencia significativa entre los grupos, por tanto, el euribor sí esta asociado a y
+Rechazamos la hipótesis nula para cualquier nivel de significancia, se considera que sí existe diferencia significativa entre los grupos, por tanto, el euribor sí esta asociado a y.
 
 
 **Número de empleados**
@@ -852,19 +861,19 @@ ggplot(data_train, aes(x=nr.employed, y=y)) +
   geom_jitter(shape=16, position=position_jitter(0.2), size=0.5)
 ```
 
-A mayor número de emplados, menor es la cantidad de gente que contrata el producto, y viceversa. Esto puede deberse a que conforme mejores son las condiciones macroeconómicas, menor necesidad tiene la gente de contratar este tipo de productos
+A mayor número de emplados, menor es la cantidad de gente que contrata el producto, y viceversa. Esto puede deberse a que conforme mejores son las condiciones macroeconómicas, menor necesidad tiene la gente de contratar este tipo de productos.
 
-Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student
+Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student.
 ```{r}
 t.test(nr.employed~y)
 ```
-Se considera que sí existe diferencia significativa entre los grupos al rechzar la hipotesis nula, por tanto, el numero de empleados sí esta asociado a y
+Se considera que sí existe diferencia significativa entre los grupos al rechazar la hipótesis nula, por tanto, el número de empleados sí está asociado a y.
 
 
 
 # Gráficos para EDA multivariantes
 
-A continuación, vamos a analizar por qué hay determinadas variables que son tan relevantes sin que haya una lógica aparente detrás de ello, como por ejemplo el dispositivo de contacto o el mes de contacto. Y trataremos de averiguar si alguna variable no es relevante por sí sola, sino que depende de otras variables, y poder así reducir variables redundantes
+A continuación, vamos a analizar por qué hay determinadas variables que son tan relevantes sin que haya una lógica aparente detrás de ello, como por ejemplo el dispositivo de contacto o el mes de contacto. Y trataremos de averiguar si alguna variable no es relevante por sí sola, sino que depende de otras variables, y poder así reducir variables redundantes.
 
 ## Gráficos especifico para variables categoricas
 
@@ -935,9 +944,9 @@ ggplot(data_train,aes(x=month, fill=job)) +
   scale_x_discrete(limits = positions)
 ```
 
-Parece que la principal diferencia entre ambos grupos de meses es la menor presencia de trabajadores blue-collar en el primer grupo, con una mala ratio de conversión, y la mayor presencia de estudiantes y, sobre todo, de gente retirada.
+Parece que la principal diferencia entre ambos grupos de meses es la menor presencia de trabajadores blue-collar(clase obrera) en el primer grupo, con una mala ratio de conversión, y la mayor presencia de estudiantes y, sobre todo, de gente jubilada.
 
-Aún así, debería haber otros factores que afecten a la ratio de conversión tan alta que tienen, dado que es muy superior a la de cualquier trabajo. Por ello, vamos a analizar también la relación con el resultado de campañas anteriores
+Aún así, debería haber otros factores que afecten a la ratio de conversión tan alta que tienen, dado que es muy superior a la de cualquier trabajo. Por ello, vamos a analizar también la relación con el resultado de campañas anteriores.
 
 
 **Mes & resultado de la campaña previa**
@@ -953,7 +962,7 @@ ggplot(df1, aes(fill=poutcome, y=records, x=month)) +
   scale_y_continuous(labels = scales::percent)
 ```
 
-Parece que también está muy influenciado porque en estos meses la proporción de contactos que en el pasado resultaron en éxito es mucho mayor. De todas formas, parece que es una combinación de varios factores, trabajo, éxito en pasadas campañas..., lo que ha hecho que la ratio en estos meses sea mejor
+Parece que también está muy influenciado porque en estos meses la proporción de contactos que en el pasado resultaron en éxito es mucho mayor. De todas formas, parece que es una combinación de varios factores, trabajo, éxito en pasadas campañas..., lo que ha hecho que la ratio en estos meses sea mejor.
 
 
 **Dispositivo de contacto & trabajo**
@@ -965,7 +974,7 @@ ggplot(df1, aes(fill=job, y=records, x=contact)) +
   scale_y_continuous(labels = scales::percent)
 ```
 
-En este caso, parecen tener mayor relevancia los trabajadores de tipo admin. y technician con una mejor ratio de conversión, y menor los de tipo blue-collar con peor ratio. Como en el caso anterior parece una combinación de varios facores, campaña previa, trabajo..., lo que ha provocado una diferencia en la conversión entre ambas formas de contacto
+En este caso, parecen tener mayor relevancia los trabajadores de tipo admin. y technician con una mejor ratio de conversión, y menor los de tipo blue-collar con peor ratio. Como en el caso anterior parece una combinación de varios factores, campaña previa, trabajo..., lo que ha provocado una diferencia en la conversión entre ambas formas de contacto.
 
 
 **Dispositivo de contacto & resultado de la campaña previa**
@@ -978,14 +987,14 @@ ggplot(df1, aes(fill=poutcome, y=records, x=contact)) +
   scale_y_continuous(labels = scales::percent)
 ```
 
-Podemos ver que success y failure tienen mayor peso en los contactado por teléfono, los cuales tienen una mejor ratio de conversión
+Podemos ver que éxito y fracaso tienen mayor peso en los contactados por teléfono, los cuales tienen una mejor ratio de conversión.
 
 
 # Modelos de regresión logística
 
 Debido a que la variable y (compra o no el producto tras la llamada), es binaria, no se puede plantear la regresión lineal. Por tanto, se plantea un modelo de regresión logística.
 
-Previo a la aplicación del modelo, convertimos los valores en 0 y 1, tanto del train como del test.
+Previo a la aplicación del modelo, dicotomizamos la variable, convirtiendo los valores en 0 y 1, tanto del train como del test.
 
 ```{r test_pdays_aux}
 df1 = data_test %>% group_by(y, pdays) %>% summarise(records = n(), .groups = 'drop')
@@ -1003,6 +1012,9 @@ data_test$y[which(data_test$y =="no")] <- 0
 data_test$y[which(data_test$y =="yes")] <- 1
 data_test$y <- as.numeric(data_test$y)
 ```
+
+Comenzaremos con técnicas automáticas de selección de variables, para ver qué variables parecen aumentar o reducir los índices de ajuste.
+
 ## Técnicas automáticas de selección de variables
 
 **Forward Stepwise**
@@ -1010,14 +1022,15 @@ data_test$y <- as.numeric(data_test$y)
 regfit_fwd <- leaps::regsubsets(y~., data_train, method="forward")
 for (metric in c("r2", "adjr2", "Cp", "bic")){plot(regfit_fwd, scale=metric)}
 ```
-Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método forward serían mes (abril, mayo y noviembre), duración de la llamada, días previos, poutcome, cons.conf.idx y número de empleados.
+
+Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método forward serían mes (abril, mayo y noviembre), duración de la llamada, días previos, resultado de la campaña previa, índice de confianza del consumidor y número de empleados.
 
 **Backward Stepwise**
 ```{r}
 regfit_bwd <- leaps::regsubsets(y~., data_train, method="backward")
 for (metric in c("r2", "adjr2", "Cp", "bic")){plot(regfit_bwd, scale=metric)}
 ```
-Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método backward serían mes (abril, mayo, junio y octubre), duración de la llamada, poutcome, emp.var.rate y cons.price.idx. 
+Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método backward serían mes (abril, mayo, junio y octubre), duración de la llamada, resultado de la campaña previa, la ratio de variación del empleo y índice de confianza del consumidor. 
 
 Ambos métodos sugieren como variables relevantes comunes el mes, la duración de la llamada y el resultado de la campaña previa.
 
@@ -1026,9 +1039,11 @@ Ambos métodos sugieren como variables relevantes comunes el mes, la duración d
 ```{r}
 #m0 <- glm(y ~1, data = data_train, family = "binomial")
 m1 <- glm(y ~ ., data = data_train, family = "binomial")
+m1.1 <- glm(y ~ -duration, data = data_train, family = "binomial")
 ```
 
 El modelo 1 corresponde al modelo con todas las variables.
+El modelo 1.1 corresponde al modelo quitando la variable duración.
 
 *Variables significativas del modelo completo*
 ```{r}
@@ -1052,34 +1067,46 @@ m6 <- glm(y ~ month+duration+poutcome, data = data_train, family = "binomial")
 m7 <- glm(y ~ month+poutcome, data = data_train, family = "binomial")
 ```
 
-Los modelos 2 y 3 son modelos con la variable que menos correlaciona (edad) y la que más correlaciona con el resto (tasa de variación de empleo).
+Los modelos 2 y 3 son modelos univariantes con la variable que menos correlaciona (edad) y la que más correlaciona con el resto (tasa de variación de empleo).
+
 El modelo 4 y 5 corresponden a los métodos automáticos de forward y backward.
+
 El modelo 6 corresponde a las variables comunes entre los métodos automáticos de forward y backward.
+
 El modelo 7 es igual que el modelo 6, sin la variable duración de la llamada.
 
 
 ```{r}
-m8 <- glm(y ~ job+education+default+contact+month+campaign+pdays+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data= data_train)
+m8 <- glm(y ~ job+education+default+contact+month+campaign+pdays_aux+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data= data_train)
 summary(m8)
 #Método manual
 m9 <- glm(y ~ month + pdays_aux + poutcome + euribor3m, data = data_train, family = binomial)
 ```
+El modelo 8m8 <- glm(y ~ job+education+default+contact+month+campaign+pdays+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data= data_train)
+summary(m8)
+#Método manual
+m9 <- glm(y ~ month + pdays_aux + poutcome + euribor3m, 
 
 **Supuestos de partida para regresión**
 
-Obtenemos la homogeneidad de la varianza, la colinealidad y la normalidad de los residuos, ya que son los supuestos de partida para aplicar la regresión logística 
+Obtenemos la homogeneidad de la varianza, la colinealidad y la normalidad de los residuos, ya que son los supuestos de partida para aplicar la regresión logística.
 
 ```{r}
 #check_model(m0)
+check_model(m1.1)
 check_model(m1)
 check_model(m2)
 check_model(m3)
 check_model(m4)
 ```
-El modelo 1 tiene valores muy altos de colinealidad, coherente con el uso de variables muy correlacionadas como mencionamos previamente. pero valores adecuados de 
+
+El modelo 1 tiene valores muy altos de colinealidad, coherente con el uso de variables muy correlacionadas como mencionamos previamente. Los valores de leverage son adecuados. 
+
+El modelo 1.1 muestra valores de homogeneidad de la varianza y de residuos inadecuados. 
+
 Los modelos 2 y 3 no muestra la gráfica de colinealidad por tener un solo predictor. El modelo 4 muestra valores bajos de colinealidad.
 
-Ninguno de estos 4 modelos muestra valores adecuados en la normalidad de los residuos, en el gráfico Q-Q. Los puntos se encuentran en los modelos dentro del intervalo marcado por la distancia D de Cook
+Ninguno de estos 4 modelos muestra valores adecuados en la normalidad de los residuos, en el gráfico Q-Q. Los puntos se encuentran en los modelos dentro del intervalo marcado por la distancia D de Cook.
 
 ```{r}
 check_model(m5)
@@ -1088,17 +1115,18 @@ check_model(m7)
 check_model(m8)
 check_model(m9)
 ```
-Los modelos 5,6 y 7 muestran valores bajos de colinealidad, frente al último que tiene valores muy altos, aumentando el riesgo de sesgo. La normalidad en el gráfico Q-Q son similares entre modelos, siendo la más diferente en el modelo 5. Aunque los valores de leverage son altos, el único modelo en el que se ajusta es el modelo 8
+Los modelos 5,6 y 7 muestran valores bajos de colinealidad, frente al último que tiene valores muy altos, aumentando el riesgo de sesgo. La normalidad en el gráfico Q-Q son similares entre modelos, siendo la más diferente en el modelo 5. Aunque los valores de leverage son altos, el único modelo en el que se ajusta es el modelo 8. El modelo 9 muestra unos valores más ajustados, tanto de colinealidad, como de leverage (dentro del intervalo de la distancia D de Cook) y la normalidad de los residuos no es adecuada, especialmente en los cuartiles intermedios.
 
 ```{r}
-compare_performance(m1,m2,m3,m4,m5,m6,m7,m8,m9)
+compare_performance(m1,m1.1,m2,m3,m4,m5,m6,m7,m8,m9)
 ``` 
 
-Los modelos muestran valores altos de AIC y BIC en general, siendo índices de ajuste de parsimonia, sancionando modelos que requieren un mayor número de variables. Los menores valores son del modelo 1, pero incluye todas las variables (también la variable duración, una variable que no será útil puesto que la obtenemos tras la realización de la llamada). Lo mismo ocurre con el modelo 6, obteniendo valores ligeramente más bajos de AIC y BIC, y de RMSE, así como de $R^2$ de Tjur o el coeficiente D de determinación para variables binarias  El modelo 8 será el seleccionado, debido a la información extra y al aumento del valor de 
+Los modelos muestran valores altos de AIC y BIC en general, siendo índices de ajuste de parsimonia, sancionando modelos que requieren un mayor número de variables. Los menores valores son del modelo 1, pero incluye todas las variables (también la variable duración, una variable que no será útil puesto que la obtenemos tras la realización de la llamada). Lo mismo ocurre con el modelo 6, obteniendo valores ligeramente más bajos de AIC y BIC, y de RMSE, así como de $R^2$ de Tjur o el coeficiente D de determinación para variables binarias  El modelo 8 será el seleccionado, debido a la información extra y al aumento del valor de $R^2$ de Tjur y menor valor de RMsE.
+
 
 
 ```{r}
-plot(compare_performance(m1,m2,m3,m4,m5,m6,m7,m8,m9, rank = TRUE))
+plot(compare_performance(m1,m1.1,m2,m3,m4,m5,m6,m7,m8,m9, rank = TRUE))
 ```
 
 Gráficamente, podemos evaluar que cuanto más cercano del centro, mejor rendimiento muestra. El objetivo es reducir AIC, BIC y RMSE y aumentar el $R^2$. 
@@ -1119,6 +1147,7 @@ matriz_confusion <- table(m1$model$y, predicciones,
                           dnn = c("observaciones", "predicciones"))
 matriz_confusion
 ```
+
 ```{r}
 TN <- matriz_confusion[1,1]
 FP <- matriz_confusion[1,2]
@@ -1175,9 +1204,9 @@ logistic_gains_table <- blr_gains_table(m1, data = data_train)
 blr_decile_lift_chart(logistic_gains_table)
 blr_ks_chart(logistic_gains_table)
 ```
-El lift chart muestra... el KS chart muestra una estructura similar a la curva ROC.
+El lift chart muestra la efectividad del modelo por deciles, estando mejor ajustado en los primeros tres deciles. El KS chart muestra una estructura similar a la curva ROC.
 
-### Modelo final seleccionado. Modelo 8.
+### Modelo final seleccionado. Modelo 8
 
 ```{r}
 Box.test(residuals(m8),type="Ljung-Box")
@@ -1246,11 +1275,14 @@ logistic_gains_table1 <- blr_gains_table(m8, data = data_train)
 blr_decile_lift_chart(logistic_gains_table1)
 blr_ks_chart(logistic_gains_table1)
 ```
-El KS se ha reducido significativamente frente al modelo completo.
+El lift chart muestra mejor ajuste en los primeros dos deciles. El KS se ha reducido significativamente frente al modelo completo.
 
 ***Conclusiones del ajuste*** 
 
 El ajuste en general, así como las predicciones han de ser tomadas con cautela debido a los supuestos de partida de la regresión logística.
-Los modelos de regresión logística muestran un ajuste pobre, quedando claro que la variable duración aumenta articialmente el ajuste. En general, el modelo completo (m1) es el modelo que ajusta mejor. 
+
+Los modelos de regresión logística muestran un ajuste pobre, quedando claro que la variable duración aumenta articialmente el ajuste. En general, el modelo completo (m1) es el modelo que ajusta mejor, pero habiendo un. 
 
 Con otros modelos obtenemos valores ligeramente peores, pero son mucho más parsimoniosos. 
+
+# Conclusiones del trabajo
