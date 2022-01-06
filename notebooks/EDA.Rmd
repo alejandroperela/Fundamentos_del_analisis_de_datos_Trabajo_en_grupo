@@ -43,6 +43,7 @@ library(see)
 library(patchwork)
 library(blorr)
 library(ltm)
+library(qgraph)
 ```
 
 
@@ -217,6 +218,7 @@ data_train %>% dplyr::select(age,duration,campaign,pdays,previous,emp.var.rate,c
 data_trainnum <- select_if(data_train, is.numeric)
 cor(data_trainnum)
 corPlot(data_trainnum, cex = 0.5, main = "Matriz de correlación", upper = FALSE)
+qgraph(cor(data_trainnum), shape="circle", posCol="darkgreen", negCol="darkred", layout="spring", vsize=10)
 ```
 Las variables edad, duración y campaña son las tres variables que muestran menor correlación con el resto, por lo que pueden ser variables poco relevantes para el modelo. 
 
@@ -1017,34 +1019,61 @@ Comenzaremos con técnicas automáticas de selección de variables, para ver qu�
 
 ## Técnicas automáticas de selección de variables
 
+**Bidirectional elimination**
+```{r}
+data_train1 <- na.omit(data_train)
+data_train2 <- data_train1[,-11] #borramos la variable duración
+data_train2 <- data_train2[,-12] #borramos la variable pdays ya que usaremos pdays_aux
+m0 <- glm(y~1, data = data_train2, family = "binomial")
+m1 <- glm(y~., data = data_train2, family = "binomial")
+regboth <- step(m0, scope = list(lower=m0, upper=m1),direction = "both"); summary(regboth)
+```
+Se omiten los NA porque produce errores. Este método parte del modelo predictivo sin variables (m0) y termina en el modelo completo (m1).
+
+La duración de la llamada no se considera relevante, ya que se obtiene después de haber realizado la transacción. Esta variable, al tener una alta correlación con la variable de salida, infraestima los valores de error y sobrestima el ajuste. 
+
+Las variables relevantes serían número de empleados, meses, resultado de la campaña previa, vía de contacto, día de la semana, trabajo, días desde el contacto previo (dicotomizada), indice de confianza del consumidor, impago, ratio de variación de empleo e índice de precios al consumo.
+
+
+```{r}
+reg1 <- glm(formula = y ~ nr.employed + month + poutcome + contact + 
+    day_of_week + job + pdays_aux + campaign + cons.conf.idx + 
+    default + emp.var.rate + cons.price.idx, family = "binomial", 
+    data = data_train2)
+```
+
+Por tanto, el modelo reg1 será el modelo automático formado por el método stepwise.
+
+Se plantean además, que se combinarán de manera manual, los métodos formward (hacia delante, añadiendo las variables significativas) y backward (hacia atrás), quitando las variables menos significativas.
+
 **Forward Stepwise**
 ```{r}
-regfit_fwd <- leaps::regsubsets(y~., data_train, method="forward")
+regfit_fwd <- leaps::regsubsets(y~., data_train2, method="forward")
 for (metric in c("r2", "adjr2", "Cp", "bic")){plot(regfit_fwd, scale=metric)}
 ```
 
-Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método forward serían mes (abril, mayo y noviembre), duración de la llamada, días previos, resultado de la campaña previa, índice de confianza del consumidor y número de empleados.
+Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método forward serían contacto telefónico, mes (mayo y noviembre), resultado de la campaña previa, ratio de variación de empleo, euribor, número de empleados y contacto previo (o no).
+
 
 **Backward Stepwise**
 ```{r}
-regfit_bwd <- leaps::regsubsets(y~., data_train, method="backward")
+regfit_bwd <- leaps::regsubsets(y~., data_train2, method="backward")
 for (metric in c("r2", "adjr2", "Cp", "bic")){plot(regfit_bwd, scale=metric)}
 ```
-Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método backward serían mes (abril, mayo, junio y octubre), duración de la llamada, resultado de la campaña previa, la ratio de variación del empleo y índice de confianza del consumidor. 
+Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método backward serían mes (abril, mayo, junio y noviembre), resultado de la campaña previa, la ratio de variación del empleo, índice de confianza del consumidor y el euribor. 
 
-Ambos métodos sugieren como variables relevantes comunes el mes, la duración de la llamada y el resultado de la campaña previa.
+
+Ambos métodos sugieren como variables relevantes comunes el mes y el resultado de la campaña previa, la  ratio de variación de empleo y el euribor.
 
 ## Modelos
 
 ```{r}
 #m0 <- glm(y ~1, data = data_train, family = "binomial")
-m1 <- glm(y ~ ., data = data_train, family = "binomial")
-m1.1 <- glm(y ~.duration, data = data_train, family = "binomial")
+m1 <- glm(y ~ ., data = data_train2, family = "binomial")
 
 ```
 
 El modelo 1 corresponde al modelo con todas las variables.
-El modelo 1.1 corresponde al modelo quitando la variable duración.
 
 *Variables significativas del modelo completo*
 ```{r}
@@ -1053,40 +1082,30 @@ names(sig.var)[sig.var == TRUE]
 ```
 
 
-Por tanto, las variables significativas del modelo son el trabajo (jubilado), educación (universidad), dispositivo de contacto (teléfono), mes de contacto (abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre y diciembre), día de la semana de contacto (martes, miércoles y jueves), duración, días desde el contacto previo, número de contactos durante esta campaña, ratio de variación del empleo, índice de precios al consumo, índice de confianza del consumidor y el número de empleados. La duración de la llamada no se considera relevante, ya que se obtiene después de haber realizado la transacción. Esta variable, al tener una alta correlación con la variable de salida, infraestima los valores de error y sobrestima el ajuste. Con esto, creamos el modelo 8 con todas las variables significativas del modelo completo, menos la duración de la llamada. 
+Por tanto, las variables significativas del modelo son el dispositivo de contacto (teléfono), mes de contacto (abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre y diciembre), día de la semana de contacto (martes, miércoles, jueves y viernes), número de campañas previas, resultado de la campaña, ratio de variación de empleo, índice de precios al consumo, índice de confianza del consumidor y el número de empleados y si hubo contacto previo. 
 
 ```{r}
-m2 <- glm(y ~ age, data = data_train, family = "binomial")
-m3 <- glm(y ~ emp.var.rate, data = data_train, family = "binomial")
+m2 <- glm(y ~ age, data = data_train2, family = "binomial")
+m3 <- glm(y ~ emp.var.rate, data = data_train2, family = "binomial")
 #modelo forward
-m4 <- glm(y ~ month+pdays+poutcome+cons.conf.idx+nr.employed, data = data_train, family = "binomial")
+m4 <- glm(y ~ contact+month+pdays_aux+poutcome+emp.var.rate+cons.conf.idx+euribor3m+nr.employed, data = data_train2, family = "binomial")
 #modelo backward
-m5 <- glm(y ~ month+poutcome+emp.var.rate+cons.price.idx, data = data_train, family = "binomial")
+m5 <- glm(y ~ month+poutcome+emp.var.rate+cons.price.idx+euribor3m, data = data_train2, family = "binomial")
 #modelo comunes back y forward.
-m6 <- glm(y ~ month+duration+poutcome, data = data_train, family = "binomial")
-#modelo comunes back y forward sin duración 
-m7 <- glm(y ~ month+poutcome, data = data_train, family = "binomial")
+m6 <- glm(y ~ month+poutcome+emp.var.rate+euribor3m, data = data_train2, family = "binomial")
 ```
 
-Los modelos 2 y 3 son modelos univariantes con la variable que menos correlaciona (edad) y la que más correlaciona con el resto (tasa de variación de empleo).
+Los modelos 2 y 3 son modelos univariantes con la variable que menos correlaciona (edad) y la que más correlaciona con el resto (ratio de variación de empleo).
 
-El modelo 4 y 5 corresponden a los métodos automáticos de forward y backward.
+El modelo 4 y 5 corresponden a los métodos automáticos de forward y backward. l mes y el resultado de la campaña previa, la  ratio de variación de empleo y el euribor. 
 
 El modelo 6 corresponde a las variables comunes entre los métodos automáticos de forward y backward.
 
-El modelo 7 es igual que el modelo 6, sin la variable duración de la llamada.
-
-
 ```{r}
-m8 <- glm(y ~ job+education+default+contact+month+campaign+pdays_aux+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data= data_train)
-summary(m8)
-#Método manual
-m9 <- glm(y ~ month + pdays_aux + poutcome + euribor3m, data = data_train, family = binomial)
+m7 <- glm(y ~ contact+month+day_of_week+previous+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed+pdays_aux, family = binomial, data=data_train2)
 ```
-El modelo 8m8 <- glm(y ~ job+education+default+contact+month+campaign+pdays+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data= data_train)
-summary(m8)
-#Método manual
-m9 <- glm(y ~ month + pdays_aux + poutcome + euribor3m, 
+
+El modelo 7 recoge todas las variables significativas del modelo completo. 
 
 **Supuestos de partida para regresión**
 
@@ -1094,43 +1113,38 @@ Obtenemos la homogeneidad de la varianza, la colinealidad y la normalidad de los
 
 ```{r}
 #check_model(m0)
-check_model(m1.1)
+check_model(reg1)
 check_model(m1)
 check_model(m2)
 check_model(m3)
-check_model(m4)
 ```
 
-El modelo 1 tiene valores muy altos de colinealidad, coherente con el uso de variables muy correlacionadas como mencionamos previamente. Los valores de leverage son adecuados. 
+El modelo reg1 muestra valores de colinealidad altos, y valores adecuados de leverage, ya que Los puntos se encuentran en los modelos dentro del intervalo marcado por la distancia D de Cook. El modelo 1 tiene valores muy altos de colinealidad, coherente con el uso de variables muy correlacionadas como mencionamos previamente. Los valores de leverage son semejantes al del modelo reg1.
 
-El modelo 1.1 muestra valores de homogeneidad de la varianza y de residuos inadecuados. 
-
-Los modelos 2 y 3 no muestra la gráfica de colinealidad por tener un solo predictor. El modelo 4 muestra valores bajos de colinealidad.
-
-Ninguno de estos 4 modelos muestra valores adecuados en la normalidad de los residuos, en el gráfico Q-Q. Los puntos se encuentran en los modelos dentro del intervalo marcado por la distancia D de Cook.
+Los modelos 2 y 3 no muestra la gráfica de colinealidad por tener un solo predictor. Ninguno de estos 4 modelos muestra valores adecuados en la normalidad de los residuos, en el gráfico Q-Q. 
 
 ```{r}
+check_model(m4)
 check_model(m5)
 check_model(m6)
 check_model(m7)
-check_model(m8)
-check_model(m9)
 ```
-Los modelos 5,6 y 7 muestran valores bajos de colinealidad, frente al último que tiene valores muy altos, aumentando el riesgo de sesgo. La normalidad en el gráfico Q-Q son similares entre modelos, siendo la más diferente en el modelo 5. Aunque los valores de leverage son altos, el único modelo en el que se ajusta es el modelo 8. El modelo 9 muestra unos valores más ajustados, tanto de colinealidad, como de leverage (dentro del intervalo de la distancia D de Cook) y la normalidad de los residuos no es adecuada, especialmente en los cuartiles intermedios.
+Los modelos 4,5,6 y 7 muestran valores altos de colinealidad, aumentando el riesgo de sesgo. Se observa un mejor ajuste a la distancia D de Cook en leverage, así como un gráfico Q-Q mejor que los modelos previos. Sigue habiendo una amplia distorsión en los cuartiles centrales. 
 
 ```{r}
-compare_performance(m1,m1.1,m2,m3,m4,m5,m6,m7,m8,m9)
+compare_performance(reg1,m1,m2,m3,m4,m5,m6,m7)
 ``` 
 
-Los modelos muestran valores altos de AIC y BIC en general, siendo índices de ajuste de parsimonia, sancionando modelos que requieren un mayor número de variables. Los menores valores son del modelo 1, pero incluye todas las variables (también la variable duración, una variable que no será útil puesto que la obtenemos tras la realización de la llamada). Lo mismo ocurre con el modelo 6, obteniendo valores ligeramente más bajos de AIC y BIC, y de RMSE, así como de $R^2$ de Tjur o el coeficiente D de determinación para variables binarias  El modelo 8 será el seleccionado, debido a la información extra y al aumento del valor de $R^2$ de Tjur y menor valor de RMsE.
+Los modelos muestran valores altos de AIC y BIC en general, siendo índices de ajuste de parsimonia, sancionando modelos que requieren un mayor número de variables. Todos los modelos (menos el 2 y el 3, que corresponden a una sola variable predictora) muestran ajustes similares, siendo el mejor el modelo 7, que incluye las variables significativas del modelo completo. 
 
+Este modelo tiene un AIC y un BIC semejante al modelo 1, además de un valor ligeramente superior al resto de $R^2$ de Tjur y mismo valor de RMSE, que indica el error cuadrático medio.
 
 
 ```{r}
-plot(compare_performance(m1,m1.1,m2,m3,m4,m5,m6,m7,m8,m9, rank = TRUE))
+plot(compare_performance(reg1,m1,m2,m3,m4,m5,m6,m7, rank = TRUE))
 ```
 
-Gráficamente, podemos evaluar que cuanto más cercano del centro, mejor rendimiento muestra. El objetivo es reducir AIC, BIC y RMSE y aumentar el $R^2$. 
+Gráficamente, podemos evaluar que cuanto más cercano del centro, mejor rendimiento muestra. El objetivo es reducir AIC, BIC y RMSE y aumentar el $R^2$. Por tanto observamos que es el modelo 7 el que muestra mejor ajuste, aunque esto no implica que sea bueno.
 
 ### Modelo 1. Modelo completo
 
@@ -1169,6 +1183,7 @@ tabla1 <- matrix(data = c(precision,recall,F1,accuracy), ncol=1, nrow=4)
 rownames(tabla1) <- c("Precision","Recall","F1","Accuracy")
 tabla1
 ```
+Los valores de precisión, exhaustividad, F1 son bastante bajos, frente a la exactitud que se muestra adecuada.
 
 ```{r}
 mosaic(matriz_confusion, shade = T, colorize = T,
@@ -1196,30 +1211,30 @@ logistic_gains_table1 <- blr_gains_table(m1, data = data_train)
 blr_roc_curve(logistic_gains_table1)
 ```
 
-El AUC tiene un valor muy adecuado. Sin embargo, analizaremos un modelo más parsimonioso que el modelo completo. 
+El AUC tiene un valor muy adecuado, por encima de 0.80. Sin embargo, analizaremos un modelo más parsimonioso que el modelo completo. 
 
 **Lift chart y KS Chart**
 
 ```{r}
-logistic_gains_table <- blr_gains_table(m1, data = data_train)
+logistic_gains_table <- blr_gains_table(m1, data = data_train2)
 blr_decile_lift_chart(logistic_gains_table)
 blr_ks_chart(logistic_gains_table)
 ```
-El lift chart muestra la efectividad del modelo por deciles, estando mejor ajustado en los primeros tres deciles. El KS chart muestra una estructura similar a la curva ROC.
+El lift chart muestra la efectividad del modelo por deciles, estando mejor ajustado en los primeros dos deciles. El KS chart muestra una estructura similar a la curva ROC.
 
-### Modelo final seleccionado. Modelo 8
+### Modelo final seleccionado. Modelo 7
 
 ```{r}
-Box.test(residuals(m8),type="Ljung-Box")
+Box.test(residuals(m7),type="Ljung-Box")
 ```
 Hay presencia de autocorrelación, lo que podría sesgar el modelo.
 
 
-*Predicciones y matriz de confusión del modelo final (m8)*
+*Predicciones y matriz de confusión del modelo final (m7)*
 
 ```{r}
-predicciones1 <- ifelse(test = m8$fitted.values > 0.5, yes = 1, no = 0)
-matriz_confusion1 <- table(m8$model$y, predicciones1,
+predicciones1 <- ifelse(test = m7$fitted.values > 0.5, yes = 1, no = 0)
+matriz_confusion1 <- table(m7$model$y, predicciones1,
                           dnn = c("observaciones", "predicciones"))
 matriz_confusion1
 ```
@@ -1243,6 +1258,7 @@ tabla11 <- matrix(data = c(precision1,recall1,F11,accuracy1), ncol=1, nrow=4)
 rownames(tabla11) <- c("Precision","Recall","F1","Accuracy")
 tabla11
 ```
+Los valores de precisión, exhaustividad, F1 son bastante bajos, frente a la exactitud que se muestra adecuada. En comparación como el modelo 1, se obtienen valores similares.
 
 ```{r}
 mosaic(matriz_confusion1, shade = T, colorize = T,
@@ -1250,7 +1266,7 @@ mosaic(matriz_confusion1, shade = T, colorize = T,
 ``` 
 
 ```{r}
-pred11<- predict.glm(m8,newdata = data_test, type="response")
+pred11<- predict.glm(m7,newdata = data_test, type="response")
 result11<- table(data_test$y, floor(pred11+0.5))
 result11
 ```
@@ -1263,27 +1279,28 @@ Realizamos la curva ROC para evaluar el AUC del modelo.
 ROC1 <- roc(data_test$y, pred11)
 plot(ROC1, col = "red")
 auc(ROC1)
-logistic_gains_table11 <- blr_gains_table(m8, data = data_train)
+logistic_gains_table11 <- blr_gains_table(m7, data = data_train2)
 blr_roc_curve(logistic_gains_table11)
 ```
 
-El AUC tiene un valor más bajo que el modelo completo.
+El AUC tiene un valor semejante al modelo completo.
 
 **Lift chart y KS Chart**
 
 ```{r}
-logistic_gains_table1 <- blr_gains_table(m8, data = data_train)
+logistic_gains_table1 <- blr_gains_table(m7, data = data_train2)
 blr_decile_lift_chart(logistic_gains_table1)
 blr_ks_chart(logistic_gains_table1)
 ```
-El lift chart muestra mejor ajuste en los primeros dos deciles. El KS se ha reducido significativamente frente al modelo completo.
+El lift chart muestra mejor ajuste en el primer decil. El KS se mantiene semejante al modelo completo.
 
 ***Conclusiones del ajuste*** 
 
 El ajuste en general, así como las predicciones han de ser tomadas con cautela debido a los supuestos de partida de la regresión logística.
 
-Los modelos de regresión logística muestran un ajuste pobre, quedando claro que la variable duración aumenta articialmente el ajuste. En general, el modelo completo (m1) es el modelo que ajusta mejor, pero habiendo un. 
+Los modelos de regresión logística muestran un ajuste pobre, quedando claro que la variable duración aumenta articialmente el ajuste. En general, el modelo completo de variables significativas (m7) es el modelo que ajusta mejor, pero no habiendo una gran ganancia comparativa en el ajuste frente al modelo 1 y al resto que incluyen más de una variable.  
 
 Con otros modelos obtenemos valores ligeramente peores, pero son mucho más parsimoniosos. 
 
 # Conclusiones del trabajo
+
