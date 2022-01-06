@@ -1039,7 +1039,8 @@ Ambos métodos sugieren como variables relevantes comunes el mes, la duración d
 ```{r}
 #m0 <- glm(y ~1, data = data_train, family = "binomial")
 m1 <- glm(y ~ ., data = data_train, family = "binomial")
-m1.1 <- glm(y ~ -duration, data = data_train, family = "binomial")
+m1.1 <- glm(y ~.duration, data = data_train, family = "binomial")
+
 ```
 
 El modelo 1 corresponde al modelo con todas las variables.
