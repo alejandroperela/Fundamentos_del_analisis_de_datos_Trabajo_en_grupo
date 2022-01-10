@@ -289,7 +289,7 @@ data_train$pdays_aux<-as.factor(data_train$pdays_aux)
 ```
 
 
-# Visualizacion de datos para EDA
+# Visualización de datos para EDA
 ## Gráficos para EDA con variables cualitativas individuales
 
 **Trabajo**
@@ -877,7 +877,7 @@ Se considera que sí existe diferencia significativa entre los grupos al rechaza
 
 A continuación, vamos a analizar por qué hay determinadas variables que son tan relevantes sin que haya una lógica aparente detrás de ello, como por ejemplo el dispositivo de contacto o el mes de contacto. Y trataremos de averiguar si alguna variable no es relevante por sí sola, sino que depende de otras variables, y poder así reducir variables redundantes.
 
-## Gráficos especifico para variables categoricas
+## Gráficos específicos para variables categóricas
 
 **Edad & trabajo**
 
