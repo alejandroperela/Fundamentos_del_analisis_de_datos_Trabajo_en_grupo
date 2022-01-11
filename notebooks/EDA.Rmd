@@ -1,7 +1,7 @@
 ---
 title: "Métodos de Análisis de datos"
 author: "Andrea Condado, Alejandro Perela y Miguel Calvo"
-date: "08/01/2022"
+date: "14/01/2022"
 output:
   html_document:
     code_folding: hide
@@ -356,7 +356,7 @@ ggplot(df3, aes(x = reorder(education, -records), y=records, fill=y, ymax=record
 
 La educación parece que juega también un papel importante en la predicción del éxito de la campaña, siendo university.degree y professional.course las educaciones con mejor ratio de conversión. Por lo que también podría ser un buen predictor.
 
-En esta ocasion, para comprobar si es cierto que hay diferencias significativas entre la variable educacion y la clase vamos a hacer un test de Fisher.
+En esta ocasion, para comprobar si es cierto que hay diferencias significativas entre la variable educación y la clase vamos a hacer un test de Fisher.
 
 El test exacto de Fisher permite analizar si dos variables dicotómicas están asociadas cuando la muestra a estudiar es demasiado pequeña y no se cumplen las condiciones necesarias para que la aplicación del test chi-cuadrado sea adecuada.
 ```{r test de Fisher}
@@ -1021,7 +1021,7 @@ Comenzaremos con técnicas automáticas de selección de variables, para ver qu�
 **Bidirectional elimination**
 ```{r}
 #data_train1 <- na.omit(data_train)
-data_train2 <- data_train1[,-11] #borramos la variable duración
+data_train2 <- data_train[,-11] #borramos la variable duración
 data_train2 <- data_train2[,-12] #borramos la variable pdays ya que usaremos pdays_aux
 m0 <- glm(y~1, data = data_train2, family = "binomial")
 m1 <- glm(y~., data = data_train2, family = "binomial")
@@ -1036,9 +1036,8 @@ Las variables relevantes serían número de empleados, meses, resultado de la ca
 
 ```{r}
 reg1 <- glm(formula = y ~ nr.employed + month + poutcome + contact + 
-    day_of_week + job + pdays_aux + campaign + cons.conf.idx + 
-    default + emp.var.rate + cons.price.idx, family = "binomial", 
-    data = data_train2)
+    day_of_week + job + cons.conf.idx + campaign + default + 
+    emp.var.rate + cons.price.idx, family = "binomial", data = data_train2)
 ```
 
 Por tanto, el modelo reg1 será el modelo automático formado por el método stepwise.
@@ -1051,7 +1050,7 @@ regfit_fwd <- leaps::regsubsets(y~., data_train2, method="forward")
 for (metric in c("r2", "adjr2", "Cp", "bic")){plot(regfit_fwd, scale=metric)}
 ```
 
-Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método forward serían contacto telefónico, mes (mayo y noviembre), resultado de la campaña previa, ratio de variación de empleo, euribor, número de empleados y contacto previo (o no).
+Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método forward serían contacto telefónico, mes (mayo, septiembre y noviembre), resultado de la campaña previa, ratio de variación de empleo, euribor y número de empleados.
 
 
 **Backward Stepwise**
@@ -1059,7 +1058,7 @@ Las variables relevantes para obtener el modelo con mejor ajuste y redimiento ob
 regfit_bwd <- leaps::regsubsets(y~., data_train2, method="backward")
 for (metric in c("r2", "adjr2", "Cp", "bic")){plot(regfit_bwd, scale=metric)}
 ```
-Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método backward serían mes (abril, mayo, junio y noviembre), resultado de la campaña previa, la ratio de variación del empleo, índice de confianza del consumidor y el euribor. 
+Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método backward serían mes (abril, mayo, junio, julio y noviembre), resultado de la campaña previa, la ratio de variación del empleo, índice de confianza del consumidor y el euribor. 
 
 
 Ambos métodos sugieren como variables relevantes comunes el mes y el resultado de la campaña previa, la  ratio de variación de empleo y el euribor.
@@ -1081,13 +1080,13 @@ names(sig.var)[sig.var == TRUE]
 ```
 
 
-Por tanto, las variables significativas del modelo son el dispositivo de contacto (teléfono), mes de contacto (abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre y diciembre), día de la semana de contacto (martes, miércoles, jueves y viernes), número de campañas previas, resultado de la campaña, ratio de variación de empleo, índice de precios al consumo, índice de confianza del consumidor y el número de empleados y si hubo contacto previo. 
+Por tanto, las variables significativas del modelo son el trabajo (jubilado), dispositivo de contacto (teléfono), mes de contacto (abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre y diciembre), día de la semana de contacto (martes, miércoles, jueves y viernes), número de campañas previas, resultado de la campaña, ratio de variación de empleo, índice de precios al consumo, índice de confianza del consumidor y el número de empleados.
 
 ```{r}
 m2 <- glm(y ~ age, data = data_train2, family = "binomial")
 m3 <- glm(y ~ emp.var.rate, data = data_train2, family = "binomial")
 #modelo forward
-m4 <- glm(y ~ contact+month+pdays_aux+poutcome+emp.var.rate+cons.conf.idx+euribor3m+nr.employed, data = data_train2, family = "binomial")
+m4 <- glm(y ~ contact+month+poutcome+emp.var.rate+cons.conf.idx+euribor3m+nr.employed, data = data_train2, family = "binomial")
 #modelo backward
 m5 <- glm(y ~ month+poutcome+emp.var.rate+cons.price.idx+euribor3m, data = data_train2, family = "binomial")
 #modelo comunes back y forward.
@@ -1101,11 +1100,11 @@ El modelo 4 y 5 corresponden a los métodos automáticos de forward y backward. 
 El modelo 6 corresponde a las variables comunes entre los métodos automáticos de forward y backward.
 
 ```{r}
-m7 <- glm(y ~ contact+month+day_of_week+previous+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed+pdays_aux, family = binomial, data=data_train2)
+m7 <- glm(y ~ job+contact+month+day_of_week+campaign+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data=data_train2)
 ```
 
 El modelo 7 recoge todas las variables significativas del modelo completo. 
-
+  
 **Supuestos de partida para regresión**
 
 Obtenemos la homogeneidad de la varianza, la colinealidad y la normalidad de los residuos, ya que son los supuestos de partida para aplicar la regresión logística.
@@ -1302,4 +1301,10 @@ Los modelos de regresión logística muestran un ajuste pobre, quedando claro qu
 Con otros modelos obtenemos valores ligeramente peores, pero son mucho más parsimoniosos. 
 
 # Conclusiones del trabajo
+
+La imputación de los valores perdidos no ha mostrado una gran significación debido a que eran variables poco relevantes a seleccionar que finalmente no fueron incluidas en e modelo final. Las predicciones han sido poco ajustadas, pero se han podido localizar las variables relevantes. 
+
+En general, las variables sociodemográficas no han parecido relevantes para los modelos finales, frente a las variables macroeconómicas. Tal como se planteaba inicialmente, las variables de edad, duración y campaña, han sido de las menos relevantes y menos significativas para los modelos. Finalmente que hubiera campaña previa no ha sido relevante para el modelo seleccionado. La variable educativa no fue un predictor adecuado, por lo que se descartó. 
+
+El mes en el que se realizaron las llamadas ha sido un predictor relevante en todos los modelos, así como la ratio de empleo, el resultado de las campañas previas o el euribor. 
 
