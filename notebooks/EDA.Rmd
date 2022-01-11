@@ -182,19 +182,18 @@ aggr_plot <- aggr(data_train[,2:7], col=c('navyblue','red'), numbers=TRUE, sortV
                   labels=names(data_train[,2:7]), cex.axis=.7, gap=3, 
                   ylab=c("Histograma de datos faltantes","Patrones"))
 ```
-Las tres variables con NA son las variables educación (en torno al 4 %) y las variables trabajo y marital, ambas por debajo de 0.01 %. Con este porcentaje de NA, se podría plantear la no imputación de estos.
+Las tres variables con NA son las variables educación (en torno al 4 %) y las variables trabajo y marital, ambas por debajo de 0.01 %. 
 
 # Imputación de valores perdidos
 
 ```{r impute data_train, warning=FALSE, message=FALSE}
 #imputación mucho más lenta que pmm (media)
-#impdata_train <- mice(data_train, m=5, maxit = 50, method = 'cart', seed = 1234)
-#summary(impdata_train)
-#sum(is.na(impdata_train))
-#data_train <- impdata_train
+impdata_train <- mice(data_train, m=5, maxit = 50, method = 'pmm', seed = 1234)
+summary(impdata_train)
+sum(is.na(impdata_train))
+data_train <- impdata_train
 ```
-En estimaciones de valores perdidos, dentro de las estimaciones univariantes, encontramos varios métodos de imputación, como el árbol de regresione o la media y la moda. 
-
+En estimaciones de valores perdidos, dentro de las estimaciones univariantes, encontramos varios métodos de imputación, como el árbol de regresiones o la media y la moda. Con el porcentaje de valores perdidos observados, la imputación mediante el método cart (árbol de regresiones) es muy lenta, por lo que se plantea la imputación mediante el método de la media (predicting mean matching).
 
 # Análisis exploratorio inicial
 
@@ -1021,8 +1020,8 @@ Comenzaremos con técnicas automáticas de selección de variables, para ver qu�
 
 **Bidirectional elimination**
 ```{r}
-data_train1 <- na.omit(data_train)
-data_train2 <- data_train1[,-11] #borramos la variable duración
+#data_train1 <- na.omit(data_train)
+data_train2 <- data_train[,-11] #borramos la variable duración
 data_train2 <- data_train2[,-12] #borramos la variable pdays ya que usaremos pdays_aux
 m0 <- glm(y~1, data = data_train2, family = "binomial")
 m1 <- glm(y~., data = data_train2, family = "binomial")
