@@ -191,7 +191,7 @@ Las tres variables con NA son las variables educación (en torno al 4 %) y las v
 impdata_train <- mice(data_train, m=5, maxit = 50, method = 'pmm', seed = 1234)
 summary(impdata_train)
 sum(is.na(impdata_train))
-#data_train <- impdata_train
+data_train <- mice::complete(impdata_train)
 ```
 En estimaciones de valores perdidos, dentro de las estimaciones univariantes, encontramos varios métodos de imputación, como el árbol de regresiones o la media y la moda. Con el porcentaje de valores perdidos observados, la imputación mediante el método cart es muy lenta, por lo que se plantea la imputación mediante el método de la media.
 
