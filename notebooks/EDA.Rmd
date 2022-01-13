@@ -278,7 +278,7 @@ ggplot(df3 %>% filter(y=='yes'),
 
 Los resultados van en línea con lo esperado, teniendo una ratio de conversión más alta la gente que nunca fueron contactados en la campaña anterior.
 
-Esta binarizacion de la variable pdays se convertirá en la variable pdays_aux. Transformamos la variable numerica pdays a variable binaria que toma valores {0,1}. 
+Esta binarización de la variable pdays se convertirá en la variable pdays_aux. Transformamos la variable numerica pdays a variable binaria que toma valores {0,1}. 
 
 La variable vale 1 si el cliente ha sido contactado anteriormente, 0 en caso contrario.
 ```{r pdays_aux, include=FALSE}
@@ -356,7 +356,7 @@ ggplot(df3, aes(x = reorder(education, -records), y=records, fill=y, ymax=record
 
 La educación parece que juega también un papel importante en la predicción del éxito de la campaña, siendo university.degree y professional.course las educaciones con mejor ratio de conversión. Por lo que también podría ser un buen predictor.
 
-En esta ocasion, para comprobar si es cierto que hay diferencias significativas entre la variable educación y la clase vamos a hacer un test de Fisher.
+En esta ocasión, para comprobar si es cierto que hay diferencias significativas entre la variable educación y la clase vamos a hacer un test de Fisher.
 
 El test exacto de Fisher permite analizar si dos variables dicotómicas están asociadas cuando la muestra a estudiar es demasiado pequeña y no se cumplen las condiciones necesarias para que la aplicación del test chi-cuadrado sea adecuada.
 ```{r test de Fisher}
@@ -997,9 +997,32 @@ Debido a que la variable y (compra o no el producto tras la llamada), es binaria
 
 Previo a la aplicación del modelo, dicotomizamos la variable, convirtiendo los valores en 0 y 1, tanto del train como del test.
 
+En el test hay que incluir la variable pdays_aux, tal y como se hizo con el data_train.
+
 ```{r test_pdays_aux}
 df1 = data_test %>% group_by(y, pdays) %>% summarise(records = n(), .groups = 'drop')
 data_test = data_test %>% mutate(pdays_aux = ifelse(pdays == 999,0,1))
+```
+
+
+## Análisis exploratorio de datos faltantes
+Una vez hecho esto, visualizamos el porcentaje de valores nulos que hay en nuestros datos, así como la combinación de valores nulos entre las diferentes dimensiones.
+
+```{r na_visualization data_test, warning=FALSE, message=FALSE, fig.width=12, fig.height=5}
+aggr_plot <- aggr(data_test[,2:7], col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE,
+                  labels=names(data_test[,2:7]), cex.axis=.7, gap=3, 
+                  ylab=c("Histograma de datos faltantes","Patrones"))
+```
+Las tres variables con NA son semejantes a los del data_train teniendo las variables educación un valor en torno al 4 % y las variables trabajo y marital, ambas por debajo de 0.01 %. 
+
+## Imputación de valores perdidos
+
+```{r impute data_test, warning=FALSE, message=FALSE}
+#cart (árbol de regresiones) es una imputación mucho más lenta que pmm (predicting mean matching)
+impdata_test <- mice(data_test, m=5, maxit = 50, method = 'pmm', seed = 1234)
+summary(impdata_test)
+sum(is.na(impdata_test))
+data_test <- mice::complete(impdata_test)
 ```
 
 ```{r}
@@ -1082,7 +1105,7 @@ names(sig.var)[sig.var == TRUE]
 
 Por tanto, las variables significativas del modelo son el trabajo (jubilado), dispositivo de contacto (teléfono), mes de contacto (abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre y diciembre), día de la semana de contacto (martes, miércoles, jueves y viernes), número de campañas previas, resultado de la campaña, ratio de variación de empleo, índice de precios al consumo, índice de confianza del consumidor y el número de empleados.
 
-```{r}
+```{r model 2 to 6}
 m2 <- glm(y ~ age, data = data_train2, family = "binomial")
 m3 <- glm(y ~ emp.var.rate, data = data_train2, family = "binomial")
 #modelo forward
@@ -1099,12 +1122,18 @@ El modelo 4 y 5 corresponden a los métodos automáticos de forward y backward. 
 
 El modelo 6 corresponde a las variables comunes entre los métodos automáticos de forward y backward.
 
-```{r}
+```{r model 7}
 m7 <- glm(y ~ job+contact+month+day_of_week+campaign+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed, family = binomial, data=data_train2)
 ```
 
 El modelo 7 recoge todas las variables significativas del modelo completo. 
-  
+
+```{r model 8}
+m8 <- glm(y ~ default+contact+month+pdays_aux+campaign+poutcome+emp.var.rate+cons.price.idx+cons.conf.idx+nr.employed+euribor3m, family = binomial, data=data_train2)
+```
+
+El modelo 8 recoge las variables significativas de manera manual. 
+
 **Supuestos de partida para regresión**
 
 Obtenemos la homogeneidad de la varianza, la colinealidad y la normalidad de los residuos, ya que son los supuestos de partida para aplicar la regresión logística.
@@ -1126,11 +1155,12 @@ check_model(m4)
 check_model(m5)
 check_model(m6)
 check_model(m7)
+check_model(m8)
 ```
-Los modelos 4,5,6 y 7 muestran valores altos de colinealidad, aumentando el riesgo de sesgo. Se observa un mejor ajuste a la distancia D de Cook en leverage, así como un gráfico Q-Q mejor que los modelos previos. Sigue habiendo una amplia distorsión en los cuartiles centrales. 
+Los modelos 4,5,6,7 y 8 muestran valores altos de colinealidad, aumentando el riesgo de sesgo. Se observa un mejor ajuste a la distancia D de Cook en leverage, así como un gráfico Q-Q mejor que los modelos previos. Sigue habiendo una amplia distorsión en los cuartiles centrales. 
 
 ```{r}
-compare_performance(reg1,m1,m2,m3,m4,m5,m6,m7)
+compare_performance(reg1,m1,m2,m3,m4,m5,m6,m7,m8)
 ``` 
 
 Los modelos muestran valores altos de AIC y BIC en general, siendo índices de ajuste de parsimonia, sancionando modelos que requieren un mayor número de variables. Todos los modelos (menos el 2 y el 3, que corresponden a una sola variable predictora) muestran ajustes similares, siendo el mejor el modelo 7, que incluye las variables significativas del modelo completo. 
@@ -1138,8 +1168,12 @@ Los modelos muestran valores altos de AIC y BIC en general, siendo índices de a
 Este modelo tiene un AIC y un BIC semejante al modelo 1, además de un valor ligeramente superior al resto de $R^2$ de Tjur y mismo valor de RMSE, que indica el error cuadrático medio.
 
 
-```{r}
-plot(compare_performance(reg1,m1,m2,m3,m4,m5,m6,m7, rank = TRUE))
+```{r compare models 1}
+plot(compare_performance(reg1,m1,m2,m3,m4, rank = TRUE))
+```
+
+```{r compare models 2}
+plot(compare_performance(m5,m6,m7,m8, rank = TRUE))
 ```
 
 Gráficamente, podemos evaluar que cuanto más cercano del centro, mejor rendimiento muestra. El objetivo es reducir AIC, BIC y RMSE y aumentar el $R^2$. Por tanto observamos que es el modelo 7 el que muestra mejor ajuste, aunque esto no implica que sea bueno.
