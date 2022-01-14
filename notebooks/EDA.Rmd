@@ -310,8 +310,8 @@ Parece que los trabajos que mejor ratio de conversión tienen son los de jubilad
 Gráficamente se observan diferencias significativas entre los  grupos, que será comprobado mediante un test chi-cuadrado.
 
 ```{r test chi-cuadrado 1}
-tabla1<-table(y,job)
-chisq.test(tabla1)
+tabla<-table(data_train$y,data_train$job)
+chisq.test(tabla)
 ```
 Se rechaza la hipótesis nula para cualquier nivel de significancia, luego consideraremos que no hay independencia entre ambas variables, es decir, hay una asociación estadísticamente significativa entre la variable trabajo y la clase y.
 
@@ -334,7 +334,7 @@ No hay grandes diferencias en la contratación cuando clasificamos a la gente po
 Para comprobar si es cierto que no hay diferencias significativas realizamos un test chi-cuadrado.
 
 ```{r test chi-cuadrado 2}
-tabla<-table(y,marital)
+tabla<-table(data_train$y,data_train$marital)
 chisq.test(tabla)
 ```
 A pesar de lo observado en los gráficos, rechazamos la hipótesis nula para cualquier nivel de significancia. Por lo tanto, consideraremos que no hay independencia entre ambas variables, es decir, existe una asociación estadísticamente significativa entre las variables.
@@ -360,7 +360,7 @@ En esta ocasión, para comprobar si es cierto que hay diferencias significativas
 
 El test exacto de Fisher permite analizar si dos variables dicotómicas están asociadas cuando la muestra a estudiar es demasiado pequeña y no se cumplen las condiciones necesarias para que la aplicación del test chi-cuadrado sea adecuada.
 ```{r test de Fisher}
-tabla<-table(y,education)
+tabla<-table(data_train$y,data_train$education)
 fisher.test(tabla, simulate.p.value = TRUE, B = 5000)
 ```
 Rechazamos la hipótesis nula, luego consideraremos que no hay independencia entre ambas variables, es decir, hay una asociación estadísticamente significativa entre la educación y la clase y.
@@ -384,11 +384,11 @@ El impago sí que parece un predictor relevante, dado que la gente que no tiene 
 
 Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test de Fisher.
 ```{r test de Fisher 2}
-tabla<-table(y,default)
+tabla<-table(data_train$y,data_train$default)
 #Con chi-cuadrado daba problemas por lo que uso fisher
 fisher.test(tabla)
 ```
-Rechazamos la hipotesis nula, por lo tanto, la variable default presenta una asociación significativa para la clase y.
+Rechazamos la hipótesis nula, por lo tanto, la variable default presenta una asociación significativa para la clase y.
 
 
 **Hipoteca**
@@ -409,7 +409,7 @@ No se aprecian diferencias en si el contactado tiene una hipoteca o no.
 
 Para comprobar si es cierto que no hay diferencias significativas realizamos un test chi-cuadrado.
 ```{r test chi-cuadrado 3}
-tabla<-table(y,housing)
+tabla<-table(data_train$y,data_train$housing)
 chisq.test(tabla)
 chisq.test(tabla, simulate.p.value = TRUE, B = 5000)
 ```
@@ -435,7 +435,7 @@ Tampoco parece haber diferencias teniendo en cuenta si la persona tenía un pré
 
 Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado.
 ```{r test chi cuadrado 4}
-tabla<-table(y,loan)
+tabla<-table(data_train$y,data_train$loan)
 chisq.test(tabla)
 chisq.test(tabla, simulate.p.value = TRUE, B = 5000)
 ```
@@ -461,7 +461,7 @@ Parece que la forma de contactar con cada persona podría ser un buen predictor,
 
 Para comprobar si es cierto que hay diferencias significativas realizamos el test chi-cuadrado.
 ```{r test chi cuadrado 5}
-tabla<-table(y,contact)
+tabla<-table(data_train$y,data_train$contact)
 chisq.test(tabla)
 ```
 Rechazamos la hipótesis nula para cualquier nivel de significancia. La variable contact presenta una asociación estadísticamente signficativa para y.
@@ -488,7 +488,7 @@ El mes también parece un muy buen predictor, habiendo meses como marzo, septiem
 
 Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado.
 ```{r test chi cuadrado 6}
-tabla<-table(y,month)
+tabla<-table(data_train$y,data_train$month)
 chisq.test(tabla)
 ```
 Rechazamos la hipótesis nula, es decir, la variable month muestra una asociación estadísticamente significativa con la clase y.
@@ -516,7 +516,7 @@ No parece haber ninguna influencia en el resultado de la campaña por parte del 
 Para comprobar si es cierto que no hay diferencias significativas vamos a hacer un test chi-cuadrado.
 
 ```{r test chi cuadrado 7}
-tabla<-table(y,day_of_week)
+tabla<-table(data_train$y,data_train$day_of_week)
 chisq.test(tabla)
 ```
 Rechazamos la hipótesis nula para cualquier nivel de significancia, es decir, existe una asociación significativa entre el día de la semana y la clase y.
@@ -542,7 +542,7 @@ Observamos que el ratio de conversión más alto es el que corresponde a la gent
 
 Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test chi-cuadrado.
 ```{r test chi cuadrado 8}
-tabla<-table(y,data_train$pdays_aux)
+tabla<-table(data_train$y,data_train$pdays_aux)
 chisq.test(tabla)
 ```
 
@@ -567,7 +567,7 @@ El resultado de la campaña previa también puede ser un buen predictor.
 
 Para comprobar si es cierto que hay diferencias significativas realizamos un test chi-cuadrado.
 ```{r test chi cuadrado 9}
-tabla<-table(y,poutcome)
+tabla<-table(data_train$y,data_train$poutcome)
 chisq.test(tabla)
 ```
 Observamos que se rechaza la hipótesis nula para cualquier nivel de significancia, es decir,  poutcome presenta una asociación estadísticamente significativa con la clase.
@@ -619,8 +619,8 @@ Como podemos observar en la gráfica de densidad, parece que las personas que te
 Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student
 El llamado test de Student ayuda a determinar si la diferencia observada es o no estadísticamente significativa.
 ```{r test de Student age}
-t.test(age~y)
-biserial.cor(x = age,  y = y, level = 2)
+t.test(data_train$age~data_train$y)
+biserial.cor(x = data_train$age,  y = data_train$y, level = 2)
 ```
 Observando el p-valor sí se consideraría que existen diferencias significativas entre los grupos, por tanto, la edad sí está asociado a y, aunque encontramos que la correlación es relativamente baja.
 
@@ -643,7 +643,7 @@ En este caso, únicamente confirmamos lo que ya sospechábamos, y es que cuanto 
 
 Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student.
 ```{r test de Student duration}
-t.test(duration~y)
+t.test(data_train$duration~data_train$y)
 ```
 Existen diferencias significativas entre los grupos, por tanto, la duración de la última llamada sí está asociado a y.
 
@@ -676,7 +676,7 @@ Podemos ver que conforme aumentan el número de contactos, la ratio de conversi�
 
 Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student.
 ```{r}
-t.test(campaign~y)
+t.test(data_train$campaign~data_train$y)
 ```
 Rechazamos la hipótesis nula para cualquier nivel de significancia por lo que sí se consideraría que existe diferencia significativa entre los grupos. Por lo tanto, campaign sí esta asociado a y.
 
@@ -709,7 +709,7 @@ Parece que la distribución es más o menos similar para ambos grupos de persona
 
 Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student.
 ```{r}
-t.test(previous~y)
+t.test(data_train$previous~data_train$y)
 ```
 Se consideraría que sí existe diferencia significativa entre los grupos, es decir, previous sí está asociado a y.
 
@@ -742,7 +742,7 @@ Parece que cuanto más aumenta el empleo, mayor es la proporción de personas qu
 
 Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student.
 ```{r}
-t.test(emp.var.rate~y)
+t.test(data_train$emp.var.rate~data_train$y)
 ```
 El p-valor es inferior a 0.05, rechazamos la hipótesis nula al considerar que sí existe diferencia significativa entre los grupos, es decir, el ratio de variación del empleo sí esta asociado a y.
 
@@ -777,7 +777,7 @@ El gráfico de cajas parece indicar algo parecido, dado que la media del índice
 
 Para comprobar si es cierto que hay diferencias significativas vamos a hacer un test de Student.
 ```{r}
-t.test(cons.price.idx~y)
+t.test(data_train$cons.price.idx~data_train$y)
 ```
 Se consideraría que sí existe diferencia significativa entre los grupos al rechazar la hipótesis nula, por tanto, el índice de precios al consumo sí está asociado a y.
 
@@ -810,7 +810,7 @@ La variable Índice de confianza del consumidor tiene un comportamiento similar 
 
 Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student.
 ```{r}
-t.test(cons.conf.idx~y)
+t.test(data_train$cons.conf.idx~data_train$y)
 ```
 Al rechazar la hipótesis nula se considera que sí existe diferencia significativa entre los grupos, por tanto, existe una asociación estadísticamente significativa entre el índice de confianza del consumidor y la clase y.
 
@@ -833,7 +833,7 @@ Cuanto mayor es el euribor, menor cantidad de gente contrata, y viceversa; cuant
 
 Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student
 ```{r}
-t.test(euribor3m~y)
+t.test(data_train$euribor3m~data_train$y)
 ```
 Rechazamos la hipótesis nula para cualquier nivel de significancia, se considera que sí existe diferencia significativa entre los grupos, por tanto, el euribor sí esta asociado a y.
 
@@ -866,7 +866,7 @@ A mayor número de emplados, menor es la cantidad de gente que contrata el produ
 
 Para comprobar si es cierto que existen evidencias significativas realizamos el test de Student.
 ```{r}
-t.test(nr.employed~y)
+t.test(data_train$nr.employed~data_train$y)
 ```
 Se considera que sí existe diferencia significativa entre los grupos al rechazar la hipótesis nula, por tanto, el número de empleados sí está asociado a y.
 
@@ -1054,13 +1054,14 @@ Se omiten los NA porque produce errores. Este método parte del modelo predictiv
 
 La duración de la llamada no se considera relevante, ya que se obtiene después de haber realizado la transacción. Esta variable, al tener una alta correlación con la variable de salida, infraestima los valores de error y sobrestima el ajuste. 
 
-Las variables relevantes serían número de empleados, meses, resultado de la campaña previa, vía de contacto, día de la semana, trabajo, días desde el contacto previo (dicotomizada), indice de confianza del consumidor, impago, ratio de variación de empleo e índice de precios al consumo.
+Las variables relevantes serían número de empleados, meses, resultado de la campaña previa, vía de contacto, día de la semana, trabajo, días desde el contacto previo (dicotomizada), indice de confianza del consumidor, número de contactos durante esta campaña,  impago, ratio de variación de empleo e índice de precios al consumo.
 
 
 ```{r}
 reg1 <- glm(formula = y ~ nr.employed + month + poutcome + contact + 
-    day_of_week + job + cons.conf.idx + campaign + default + 
-    emp.var.rate + cons.price.idx, family = "binomial", data = data_train2)
+    day_of_week + job + pdays_aux + cons.conf.idx + campaign + 
+    default + emp.var.rate + cons.price.idx, family = "binomial", 
+    data = data_train2)
 ```
 
 Por tanto, el modelo reg1 será el modelo automático formado por el método stepwise.
@@ -1073,7 +1074,7 @@ regfit_fwd <- leaps::regsubsets(y~., data_train2, method="forward")
 for (metric in c("r2", "adjr2", "Cp", "bic")){plot(regfit_fwd, scale=metric)}
 ```
 
-Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método forward serían contacto telefónico, mes (mayo, septiembre y noviembre), resultado de la campaña previa, ratio de variación de empleo, euribor y número de empleados.
+Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método forward serían contacto telefónico, mes (mayo, julio y septiembre), resultado de la campaña previa, índice de precios al consumo, índice de confianza del consumidor, euribor y número de empleados y días de contacto previo (dicotomizada).
 
 
 **Backward Stepwise**
@@ -1081,10 +1082,9 @@ Las variables relevantes para obtener el modelo con mejor ajuste y redimiento ob
 regfit_bwd <- leaps::regsubsets(y~., data_train2, method="backward")
 for (metric in c("r2", "adjr2", "Cp", "bic")){plot(regfit_bwd, scale=metric)}
 ```
-Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método backward serían mes (abril, mayo, junio, julio y noviembre), resultado de la campaña previa, la ratio de variación del empleo, índice de confianza del consumidor y el euribor. 
+Las variables relevantes para obtener el modelo con mejor ajuste y redimiento obtenidas por el método backward serían mes (abril, mayo, junio, julio y noviembre), resultado de la campaña previa, la ratio de variación del empleo, índice de precios al consumo y el euribor. 
 
-
-Ambos métodos sugieren como variables relevantes comunes el mes y el resultado de la campaña previa, la  ratio de variación de empleo y el euribor.
+Ambos métodos sugieren como variables relevantes comunes el mes, el resultado de la campaña previa, el índice de precios al consumo y el euribor.
 
 ## Modelos
 
@@ -1109,16 +1109,16 @@ Por tanto, las variables significativas del modelo son el trabajo (jubilado), di
 m2 <- glm(y ~ age, data = data_train2, family = "binomial")
 m3 <- glm(y ~ emp.var.rate, data = data_train2, family = "binomial")
 #modelo forward
-m4 <- glm(y ~ contact+month+poutcome+emp.var.rate+cons.conf.idx+euribor3m+nr.employed, data = data_train2, family = "binomial")
+m4 <- glm(y ~ contact+month+poutcome+cons.conf.idx+cons.price.idx+euribor3m+nr.employed+pdays_aux, data = data_train2, family = "binomial")
 #modelo backward
 m5 <- glm(y ~ month+poutcome+emp.var.rate+cons.price.idx+euribor3m, data = data_train2, family = "binomial")
 #modelo comunes back y forward.
-m6 <- glm(y ~ month+poutcome+emp.var.rate+euribor3m, data = data_train2, family = "binomial")
+m6 <- glm(y ~ month+poutcome+cons.price.idx+euribor3m, data = data_train2, family = "binomial")
 ```
 
 Los modelos 2 y 3 son modelos univariantes con la variable que menos correlaciona (edad) y la que más correlaciona con el resto (ratio de variación de empleo).
 
-El modelo 4 y 5 corresponden a los métodos automáticos de forward y backward. l mes y el resultado de la campaña previa, la  ratio de variación de empleo y el euribor. 
+El modelo 4 y 5 corresponden a los métodos automáticos de forward y backward.  
 
 El modelo 6 corresponde a las variables comunes entre los métodos automáticos de forward y backward.
 
@@ -1157,15 +1157,15 @@ check_model(m6)
 check_model(m7)
 check_model(m8)
 ```
-Los modelos 4,5,6,7 y 8 muestran valores altos de colinealidad, aumentando el riesgo de sesgo. Se observa un mejor ajuste a la distancia D de Cook en leverage, así como un gráfico Q-Q mejor que los modelos previos. Sigue habiendo una amplia distorsión en los cuartiles centrales. 
+Los modelos 4,5,7 y 8 muestran valores altos de colinealidad, aumentando el riesgo de sesgo. Frente a estos, el modelo 6 muestra valores bajos de colinealidad. Se observa un mejor ajuste a la distancia D de Cook en leverage, así como un gráfico Q-Q mejor que los modelos previos. Sigue habiendo una amplia distorsión en los cuartiles centrales. 
 
 ```{r}
 compare_performance(reg1,m1,m2,m3,m4,m5,m6,m7,m8)
 ``` 
 
-Los modelos muestran valores altos de AIC y BIC en general, siendo índices de ajuste de parsimonia, sancionando modelos que requieren un mayor número de variables. Todos los modelos (menos el 2 y el 3, que corresponden a una sola variable predictora) muestran ajustes similares, siendo el mejor el modelo 7, que incluye las variables significativas del modelo completo. 
+Los modelos muestran valores altos de AIC y BIC en general, siendo índices de ajuste de parsimonia, sancionando modelos que requieren un mayor número de variables. Todos los modelos (menos el 2 y el 3, que corresponden a una sola variable predictora) muestran ajustes similares, especialmente el m1, reg1 y el m7. El mejor es el modelo reg1, aunque finalmente escogeremos el m7, que recoge las variables significativas del modelo 1. 
 
-Este modelo tiene un AIC y un BIC semejante al modelo 1, además de un valor ligeramente superior al resto de $R^2$ de Tjur y mismo valor de RMSE, que indica el error cuadrático medio.
+No se escoge el modelo reg1 porque requiere de un mayor número de variables. Este modelo tiene un AIC y un BIC semejante al modelo 1, además de un valor ligeramente superior al resto de $R^2$ de Tjur y mismo valor de RMSE, que indica el error cuadrático medio.
 
 
 ```{r compare models 1}
